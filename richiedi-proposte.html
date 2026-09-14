@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Descrivi il viaggio che desideri e richiedi fino a tre proposte a professionisti compatibili.">
+<meta name="theme-color" content="#062e59">
+<link rel="icon" type="image/png" href="logo-parti-bene.png">
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="claims.css"><link rel="stylesheet" href="proposal.css">
+<title>Ricevi fino a 3 proposte | Parti Bene</title>
+</head>
+<body>
+<div class="topbar">Richieste senza obbligo d’acquisto</div>
+<header><div class="container nav">
+<a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
+<nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a><a href="area-professionisti.html">Sei un professionista?</a></nav>
+<div class="actions"><a class="btn btn-ghost" href="accedi.html">Accedi</a><a class="btn btn-primary" href="area-professionisti.html">Iscriviti gratis</a></div>
+</div></header>
+<main>
+<section class="page-hero"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a> / Ricevi proposte</div><div class="kicker">Una richiesta, più possibilità</div><h1>Raccontaci il viaggio che immagini</h1><p class="hero-copy">Raccogliamo le informazioni essenziali per individuare fino a tre agenzie o consulenti compatibili con le tue esigenze.</p></div></section>
+<section style="padding-top:46px"><div class="container request-layout">
+<div class="panel">
+<div class="kicker">Richiesta di viaggio</div><h2>Costruiamo il punto di partenza</h2><p class="section-copy">Non è una prenotazione e non comporta obblighi di acquisto.</p>
+<div class="request-progress"><span class="active"></span><span class="active"></span><span class="active"></span></div>
+<form id="proposalForm" class="form-grid">
+<div class="form-field full"><label>Che tipo di viaggio desideri? *</label><div class="choice-grid">
+<div class="choice"><input id="custom" type="radio" name="trip_type" value="Viaggio su misura" checked><label for="custom">Viaggio su misura</label></div>
+<div class="choice"><input id="honeymoon" type="radio" name="trip_type" value="Viaggio di nozze"><label for="honeymoon">Viaggio di nozze</label></div>
+<div class="choice"><input id="cruise" type="radio" name="trip_type" value="Crociera"><label for="cruise">Crociera</label></div>
+<div class="choice"><input id="family" type="radio" name="trip_type" value="Vacanza in famiglia"><label for="family">Vacanza in famiglia</label></div>
+<div class="choice"><input id="group" type="radio" name="trip_type" value="Viaggio di gruppo"><label for="group">Viaggio di gruppo</label></div>
+<div class="choice"><input id="other" type="radio" name="trip_type" value="Altro"><label for="other">Altro</label></div>
+</div></div>
+<div class="form-field full"><label>Destinazione o idea di viaggio *</label><input id="tripDestination" name="destination" required placeholder="Es. Giappone oppure mare tropicale"></div>
+<div class="form-field"><label>Partenza da *</label><input name="departure" required placeholder="Città o aeroporto"></div>
+<div class="form-field"><label>Periodo indicativo *</label><input id="tripPeriod" name="period" required placeholder="Es. agosto 2027"></div>
+<div class="form-field"><label>Adulti *</label><input name="adults" type="number" min="1" value="2" required></div>
+<div class="form-field"><label>Bambini</label><input name="children" type="number" min="0" value="0"></div>
+<div class="form-field"><label>Durata indicativa</label><select name="duration"><option>Da definire</option><option>Weekend</option><option>4–7 giorni</option><option>8–14 giorni</option><option>Più di 14 giorni</option></select></div>
+<div class="form-field"><label>Budget complessivo</label><select id="tripBudget" name="budget"><option value="">Preferisco non indicarlo</option><option>Fino a €1.500</option><option>€1.500–€3.000</option><option>€3.000–€5.000</option><option>€5.000–€10.000</option><option>Oltre €10.000</option></select></div>
+<div class="form-field full"><label>Che tipo di assistenza preferisci?</label><div class="choice-grid">
+<div class="choice"><input id="nearby" type="radio" name="assistance" value="Vicino a me"><label for="nearby">Professionista vicino</label></div>
+<div class="choice"><input id="online" type="radio" name="assistance" value="Online"><label for="online">Consulenza online</label></div>
+<div class="choice"><input id="either" type="radio" name="assistance" value="Indifferente" checked><label for="either">È indifferente</label></div>
+</div></div>
+<div class="form-field full"><label>Esigenze e preferenze</label><textarea name="details" rows="5" placeholder="Descrivi stile di viaggio, sistemazione, attività, esigenze alimentari, accessibilità o altre informazioni utili"></textarea></div>
+<div class="form-field"><label>Nome e cognome *</label><input name="name" required autocomplete="name"></div>
+<div class="form-field"><label>Telefono *</label><input name="phone" type="tel" required autocomplete="tel"></div>
+<div class="form-field full"><label>Email *</label><input name="email" type="email" required autocomplete="email"></div>
+<label class="consent-line form-field full"><input type="checkbox" required><span>Accetto l’informativa privacy e autorizzo Parti Bene a utilizzare questi dati per individuare e contattare professionisti compatibili.</span></label>
+<button class="btn btn-primary form-field full" type="submit">Richiedi fino a 3 proposte</button>
+</form>
+<div id="proposalMessage" class="notice form-message">La richiesta è compilata correttamente, ma non è stata inviata: il salvataggio e l’assegnazione ai professionisti saranno attivati con Supabase.</div>
+</div>
+<aside class="panel request-aside"><div class="kicker">Come funziona</div><h3>Una richiesta, fino a tre risposte</h3><div class="request-summary">
+<div class="summary-row"><span>1. Descrivi</span><strong>Il viaggio che desideri</strong></div>
+<div class="summary-row"><span>2. Abbiniamo</span><strong>Professionisti compatibili</strong></div>
+<div class="summary-row"><span>3. Confronti</span><strong>Fino a tre proposte</strong></div>
+<div class="summary-row"><span>4. Scegli</span><strong>Senza obbligo d’acquisto</strong></div>
+</div><div class="safe-note">Preventivo definitivo, contratto e pagamento saranno gestiti direttamente dal professionista scelto. Parti Bene non vende il viaggio nella prima versione.</div><a class="btn btn-ghost" href="professionisti.html" style="width:100%;margin-top:14px">Preferisci scegliere direttamente?</a></aside>
+</div></section>
+</main>
+<footer><div class="container"><div class="footer-grid">
+<div><div class="footer-logo-wrap"><img class="footer-logo" src="logo-parti-bene.png" alt="Parti Bene"></div><p style="max-width:330px;line-height:1.6;font-size:13px">Il portale italiano che mette in contatto viaggiatori, agenzie e consulenti di viaggio.</p></div>
+<div><h4>Esplora</h4><a href="professionisti.html">Professionisti</a><a href="offerte.html">Offerte</a><a href="richiedi-proposte.html">Ricevi proposte</a></div>
+<div><h4>Professionisti</h4><a href="area-professionisti.html">Iscriviti gratis</a><a href="rivendica-profilo.html">Rivendica un profilo</a></div>
+<div><h4>Informazioni</h4><a href="chi-siamo.html">Chi siamo</a><a href="contatti.html">Contatti</a><a href="privacy.html">Privacy</a></div>
+</div><div class="legal"><span>© 2026 Parti Bene.</span><span>Richieste senza obbligo d’acquisto</span></div></div></footer>
+<script>
+const form=document.getElementById("proposalForm"),destination=document.getElementById("tripDestination"),period=document.getElementById("tripPeriod"),budget=document.getElementById("tripBudget");
+function updateSummary(){const d=destination.value.trim(),p=period.value.trim(),b=budget.value;document.title=(d?"Viaggio "+d+" | ":"")+"Parti Bene";}
+[destination,period,budget].forEach(el=>el.addEventListener("input",updateSummary));
+form.addEventListener("submit",function(e){e.preventDefault();document.getElementById("proposalMessage").classList.add("is-visible");document.getElementById("proposalMessage").scrollIntoView({behavior:"smooth",block:"center"});});
+</script>
+</body></html>
