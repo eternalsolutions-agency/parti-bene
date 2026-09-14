@@ -1,0 +1,16 @@
+.claim-banner{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;background:#fff8ed;border:1px solid #f1d4a7;border-radius:18px;padding:18px;margin:22px 0}
+.claim-icon{width:44px;height:44px;border-radius:14px;background:#ffead0;color:#8a5213;display:grid;place-items:center;font-weight:950}
+.claim-banner strong{display:block;color:#6f430e;margin-bottom:4px}
+.claim-banner p{margin:0;color:#805e35;font-size:13px;line-height:1.5}
+.status-unclaimed{background:#fff3df!important;color:#85500f!important;border:1px solid #f0d09b}
+.claim-shell{max-width:900px;margin:auto}
+.claim-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:26px 0}
+.claim-step{background:var(--soft);border-radius:18px;padding:20px}
+.claim-step span{width:34px;height:34px;background:var(--teal);color:var(--navy);display:grid;place-items:center;border-radius:11px;font-weight:950;margin-bottom:13px}
+.claim-step h3{font-size:16px;color:var(--navy);margin:0 0 7px}
+.claim-step p{font-size:13px;color:var(--muted);line-height:1.5;margin:0}
+.claim-form{margin-top:24px}
+.consent-line{display:flex;align-items:flex-start;gap:10px;color:var(--muted);font-size:13px;line-height:1.5}
+.form-message{display:none;margin-top:16px}
+.form-message.is-visible{display:block}
+@media(max-width:760px){.claim-banner{grid-template-columns:auto 1fr}.claim-banner .btn{grid-column:1/-1;width:100%}.claim-steps{grid-template-columns:1fr}}
