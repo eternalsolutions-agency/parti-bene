@@ -3,38 +3,403 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parti Bene</title>
+  <meta name="description" content="Parti Bene ti aiuta a trovare e confrontare agenzie e consulenti di viaggio vicini a te o disponibili online.">
+  <meta name="theme-color" content="#062e59">
+  <title>Parti Bene | Trova il professionista giusto per il tuo viaggio</title>
   <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      font-family: Arial, sans-serif;
-      color: #062e59;
-      background: #f7fbfc;
-      text-align: center;
+    :root {
+      --navy:#062e59;
+      --navy-2:#0b4677;
+      --teal:#18bfa5;
+      --teal-dark:#0b9682;
+      --ink:#17324b;
+      --muted:#607386;
+      --line:#dce7ec;
+      --soft:#f3f8fa;
+      --white:#fff;
+      --coral:#ff7a66;
+      --shadow:0 18px 55px rgba(6,46,89,.12);
+      --radius:22px;
     }
-
-    h1 {
-      margin-bottom: 8px;
-      font-size: 48px;
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:#fff}
+    button,input,select{font:inherit}
+    button,a{touch-action:manipulation}
+    a{color:inherit;text-decoration:none}
+    .container{width:min(1180px,calc(100% - 40px));margin:auto}
+    .topbar{background:var(--navy);color:#dceaf4;font-size:13px;text-align:center;padding:8px 16px}
+    header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid rgba(220,231,236,.8)}
+    .nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:900;font-size:24px;color:var(--navy);letter-spacing:-.7px}
+    .mark{width:45px;height:45px;border-radius:14px;background:var(--navy);position:relative;display:grid;place-items:center;color:white;font-weight:900;font-size:21px;overflow:hidden}
+    .mark::after{content:"B";color:var(--teal);margin-left:10px}
+    .mark::before{content:"P";position:absolute;left:9px;z-index:1}
+    nav{display:flex;gap:26px;align-items:center;font-size:14px;font-weight:700;color:#3d566d}
+    nav a:hover{color:var(--teal-dark)}
+    .actions{display:flex;align-items:center;gap:10px}
+    .btn{border:0;border-radius:14px;padding:12px 17px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.2s ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{background:var(--teal);color:#042f39;box-shadow:0 9px 22px rgba(24,191,165,.25)}
+    .btn-dark{background:var(--navy);color:white}
+    .btn-ghost{background:white;color:var(--navy);border:1px solid var(--line)}
+    .hero{background:linear-gradient(145deg,#eef9f7 0%,#f8fbfc 55%,#eef4fa 100%);padding:72px 0 88px;overflow:hidden;position:relative}
+    .hero::before,.hero::after{content:"";position:absolute;border-radius:50%;filter:blur(3px);opacity:.7}
+    .hero::before{width:330px;height:330px;background:rgba(24,191,165,.09);right:-80px;top:-120px}
+    .hero::after{width:220px;height:220px;background:rgba(6,46,89,.06);left:-80px;bottom:-110px}
+    .eyebrow{display:inline-flex;gap:8px;align-items:center;background:white;border:1px solid #d8ece8;color:var(--teal-dark);font-size:13px;font-weight:850;padding:8px 12px;border-radius:999px}
+    h1{font-size:clamp(42px,6vw,70px);line-height:1.02;letter-spacing:-3px;color:var(--navy);max-width:850px;margin:20px 0 18px}
+    h1 span{color:var(--teal-dark)}
+    .hero-copy{font-size:19px;line-height:1.65;color:#50677b;max-width:710px;margin:0 0 32px}
+    .search-box{position:relative;z-index:2;background:white;border:1px solid #deeaee;border-radius:24px;padding:14px;box-shadow:var(--shadow);display:grid;grid-template-columns:1.25fr 1fr .9fr auto;gap:10px;max-width:1120px}
+    .field{background:var(--soft);border:1px solid transparent;border-radius:15px;padding:10px 13px;min-width:0}
+    .field:focus-within{border-color:var(--teal);background:white}
+    .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:850;color:#738799;margin-bottom:4px}
+    .field input,.field select{width:100%;border:0;outline:0;background:transparent;color:var(--navy);font-weight:750;padding:2px 0}
+    .search-submit{min-width:124px}
+    .geo-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+    .geo-status{font-size:13px;color:var(--muted)}
+    .trust{display:flex;gap:24px;flex-wrap:wrap;margin-top:28px;color:#587084;font-size:13px;font-weight:700}
+    .trust span::before{content:"✓";color:var(--teal-dark);margin-right:7px}
+    section{padding:82px 0}
+    .section-head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:30px}
+    .kicker{color:var(--teal-dark);text-transform:uppercase;letter-spacing:1px;font-size:12px;font-weight:900;margin-bottom:8px}
+    h2{font-size:clamp(30px,4vw,44px);letter-spacing:-1.7px;line-height:1.08;color:var(--navy);margin:0}
+    .section-copy{color:var(--muted);line-height:1.6;max-width:620px;margin:10px 0 0}
+    .paths{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .path{border:1px solid var(--line);border-radius:var(--radius);padding:26px;background:white;transition:.2s}
+    .path:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:#cce6e2}
+    .icon{width:48px;height:48px;border-radius:15px;background:#e7f8f5;color:var(--teal-dark);display:grid;place-items:center;font-size:23px;margin-bottom:18px}
+    .path h3{color:var(--navy);font-size:20px;margin:0 0 9px}
+    .path p{color:var(--muted);line-height:1.55;margin:0 0 18px}
+    .text-link{color:var(--teal-dark);font-weight:850;font-size:14px}
+    .professionals{background:var(--soft)}
+    .filters{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:22px}
+    .chip{border:1px solid var(--line);background:white;border-radius:999px;padding:9px 13px;cursor:pointer;font-weight:750;color:#50677b;font-size:13px}
+    .chip.active{background:var(--navy);color:white;border-color:var(--navy)}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .card{background:white;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:0 8px 30px rgba(6,46,89,.06)}
+    .card-top{height:112px;background:linear-gradient(135deg,var(--navy),var(--navy-2));padding:18px;color:white;position:relative}
+    .avatar{width:58px;height:58px;border-radius:18px;background:white;color:var(--navy);display:grid;place-items:center;font-weight:950;font-size:20px;box-shadow:0 8px 20px rgba(0,0,0,.13)}
+    .verified{position:absolute;right:16px;top:16px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.24);padding:7px 9px;border-radius:999px;font-size:11px;font-weight:850}
+    .card-body{padding:20px}
+    .card h3{margin:0;color:var(--navy);font-size:19px}
+    .meta{color:var(--muted);font-size:13px;margin:7px 0 14px}
+    .tags{display:flex;gap:7px;flex-wrap:wrap;min-height:55px}
+    .tag{background:#edf7f5;color:#277366;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800}
+    .distance{font-size:13px;font-weight:800;color:var(--teal-dark);margin-top:14px}
+    .card-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+    .card-actions .btn{padding:10px 8px;font-size:12px}
+    .empty{display:none;background:white;border:1px dashed #b9cdd6;border-radius:20px;padding:30px;text-align:center;color:var(--muted)}
+    .categories{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+    .category{border:1px solid var(--line);background:white;border-radius:18px;padding:18px 12px;text-align:center;font-weight:800;color:var(--navy);min-height:112px;display:grid;place-items:center}
+    .category span{display:block;font-size:26px;margin-bottom:7px}
+    .how{background:var(--navy);color:white}
+    .how h2,.how .kicker{color:white}
+    .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:34px}
+    .step{position:relative}
+    .step-number{width:40px;height:40px;border-radius:13px;background:var(--teal);color:#042f39;display:grid;place-items:center;font-weight:950;margin-bottom:16px}
+    .step h3{margin:0 0 8px;font-size:19px}
+    .step p{margin:0;color:#bfd1df;line-height:1.55;font-size:14px}
+    .pro-cta{padding:70px 0}
+    .cta-box{background:linear-gradient(135deg,#e6f8f4,#eff5fa);border:1px solid #d7ebe7;border-radius:30px;padding:46px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:30px}
+    .cta-box h2{font-size:36px}
+    footer{background:#041f3c;color:#b8cbd8;padding:50px 0 24px}
+    .footer-grid{display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:40px}
+    footer h4{color:white;margin:0 0 14px}
+    footer a{display:block;margin:9px 0;font-size:13px}
+    footer a:hover{color:var(--teal)}
+    .legal{border-top:1px solid rgba(255,255,255,.1);margin-top:36px;padding-top:20px;display:flex;justify-content:space-between;gap:20px;font-size:12px}
+    .mobile-toggle{display:none}
+    @media(max-width:900px){
+      nav{display:none}
+      .mobile-toggle{display:inline-flex}
+      .search-box{grid-template-columns:1fr 1fr}
+      .search-submit{min-height:55px}
+      .paths,.cards{grid-template-columns:1fr 1fr}
+      .categories{grid-template-columns:repeat(3,1fr)}
+      .steps{grid-template-columns:1fr 1fr}
+      .footer-grid{grid-template-columns:1fr 1fr}
     }
-
-    p {
-      color: #526477;
-      font-size: 18px;
-    }
-
-    span {
-      color: #18bfa5;
+    @media(max-width:620px){
+      .container{width:min(100% - 24px,1180px)}
+      .topbar{font-size:11px}
+      .nav{height:66px}
+      .brand{font-size:20px}
+      .mark{width:40px;height:40px}
+      .actions .btn-ghost{display:none}
+      .hero{padding:48px 0 60px}
+      h1{letter-spacing:-2px}
+      .hero-copy{font-size:16px}
+      .search-box{grid-template-columns:1fr;padding:10px;border-radius:20px}
+      .geo-row .btn{width:100%}
+      section{padding:60px 0}
+      .section-head{align-items:start;flex-direction:column}
+      .paths,.cards,.steps{grid-template-columns:1fr}
+      .categories{grid-template-columns:1fr 1fr}
+      .cta-box{grid-template-columns:1fr;padding:28px}
+      .cta-box .btn{width:100%}
+      .footer-grid{grid-template-columns:1fr 1fr;gap:28px}
+      .footer-grid>div:first-child{grid-column:1/-1}
+      .legal{flex-direction:column}
     }
   </style>
 </head>
 <body>
+  <div class="topbar">Iscrizione gratuita per agenzie e consulenti di viaggio</div>
+  <header>
+    <div class="container nav">
+      <a class="brand" href="#" aria-label="Parti Bene, homepage">
+        <span class="mark" aria-hidden="true"></span>
+        <span>Parti Bene</span>
+      </a>
+      <nav aria-label="Navigazione principale">
+        <a href="#professionisti">Trova professionisti</a>
+        <a href="#categorie">Tipi di viaggio</a>
+        <a href="#come-funziona">Come funziona</a>
+        <a href="#professionisti-cta">Sei un'agenzia?</a>
+      </nav>
+      <div class="actions">
+        <button class="btn btn-ghost" type="button">Accedi</button>
+        <a class="btn btn-primary" href="#professionisti-cta">Iscriviti gratis</a>
+      </div>
+    </div>
+  </header>
+
   <main>
-    <h1>Parti <span>Bene</span></h1>
-    <p>Il portale per trovare agenzie e consulenti di viaggio.</p>
+    <section class="hero">
+      <div class="container">
+        <div class="eyebrow">● Persone vere, viaggi costruiti bene</div>
+        <h1>Il viaggio giusto parte dalla <span>persona giusta.</span></h1>
+        <p class="hero-copy">Cerca e confronta agenzie e consulenti di viaggio. Trova uno specialista vicino a te oppure ricevi assistenza online in tutta Italia.</p>
+
+        <form class="search-box" id="searchForm">
+          <div class="field">
+            <label for="destination">Destinazione o viaggio</label>
+            <input id="destination" type="search" placeholder="Es. Giappone, crociera, Maldive">
+          </div>
+          <div class="field">
+            <label for="departure">Partenza da</label>
+            <input id="departure" type="text" placeholder="Città o CAP">
+          </div>
+          <div class="field">
+            <label for="assistance">Tipo di assistenza</label>
+            <select id="assistance">
+              <option value="all">Tutte le opzioni</option>
+              <option value="local">Vicino a me</option>
+              <option value="online">Online</option>
+            </select>
+          </div>
+          <button class="btn btn-primary search-submit" type="submit">Cerca</button>
+        </form>
+
+        <div class="geo-row">
+          <button class="btn btn-ghost" id="geoButton" type="button">◎ Usa la mia posizione</button>
+          <span class="geo-status" id="geoStatus">La posizione viene richiesta solo quando premi il pulsante.</span>
+        </div>
+        <div class="trust">
+          <span>Professionisti verificabili</span>
+          <span>Richieste senza obbligo d'acquisto</span>
+          <span>Consulenza in sede oppure online</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Tre modi per partire</div>
+            <h2>Scegli il percorso più semplice per te</h2>
+          </div>
+          <p class="section-copy">Non tutti cercano il viaggio nello stesso modo. Parti Bene mette al centro la tua esigenza, non un catalogo impersonale.</p>
+        </div>
+        <div class="paths">
+          <article class="path">
+            <div class="icon">◎</div>
+            <h3>Trova vicino a te</h3>
+            <p>Scopri agenzie e consulenti nella tua zona e ordinali automaticamente per distanza.</p>
+            <button class="text-link btn" id="pathGeo" type="button">Usa la posizione →</button>
+          </article>
+          <article class="path">
+            <div class="icon">◇</div>
+            <h3>Trova uno specialista</h3>
+            <p>Cerca chi conosce davvero la destinazione o la tipologia di viaggio che desideri.</p>
+            <a class="text-link" href="#professionisti">Esplora gli specialisti →</a>
+          </article>
+          <article class="path">
+            <div class="icon">✦</div>
+            <h3>Ricevi 3 proposte</h3>
+            <p>Descrivi il viaggio che immagini e confronta fino a tre proposte professionali.</p>
+            <a class="text-link" href="#professionisti-cta">Raccontaci il tuo viaggio →</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="professionals" id="professionisti">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Professionisti in evidenza</div>
+            <h2>Confronta competenze e servizi</h2>
+            <p class="section-copy">Questi sono profili dimostrativi. I profili reali saranno inseriti e verificati nella fase successiva.</p>
+          </div>
+        </div>
+        <div class="filters" id="filters">
+          <button class="chip active" data-filter="all">Tutti</button>
+          <button class="chip" data-filter="local">In sede</button>
+          <button class="chip" data-filter="online">Online</button>
+          <button class="chip" data-filter="crociere">Crociere</button>
+          <button class="chip" data-filter="nozze">Viaggi di nozze</button>
+        </div>
+        <div class="cards" id="cards"></div>
+        <div class="empty" id="empty">Nessun professionista corrisponde ai filtri selezionati. Prova una ricerca più ampia.</div>
+      </div>
+    </section>
+
+    <section id="categorie">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Idee per il prossimo viaggio</div>
+            <h2>Parti da ciò che ami</h2>
+          </div>
+        </div>
+        <div class="categories">
+          <a class="category" href="#professionisti"><div><span>♡</span>Viaggi di nozze</div></a>
+          <a class="category" href="#professionisti"><div><span>≈</span>Crociere</div></a>
+          <a class="category" href="#professionisti"><div><span>⌂</span>Famiglie</div></a>
+          <a class="category" href="#professionisti"><div><span>✦</span>Tour organizzati</div></a>
+          <a class="category" href="#professionisti"><div><span>◇</span>Su misura</div></a>
+          <a class="category" href="#professionisti"><div><span>◎</span>Turismo accessibile</div></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="how" id="come-funziona">
+      <div class="container">
+        <div class="kicker">Semplice dall'inizio alla partenza</div>
+        <h2>Cerca, confronta, contatta, parti bene.</h2>
+        <div class="steps">
+          <article class="step"><div class="step-number">1</div><h3>Cerca</h3><p>Inserisci destinazione, città o usa la posizione.</p></article>
+          <article class="step"><div class="step-number">2</div><h3>Confronta</h3><p>Valuta specializzazioni, servizi e disponibilità.</p></article>
+          <article class="step"><div class="step-number">3</div><h3>Contatta</h3><p>Richiedi informazioni senza obbligo d'acquisto.</p></article>
+          <article class="step"><div class="step-number">4</div><h3>Parti bene</h3><p>Organizza il viaggio con una persona competente.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="pro-cta" id="professionisti-cta">
+      <div class="container">
+        <div class="cta-box">
+          <div>
+            <div class="kicker">Agenzie e consulenti</div>
+            <h2>Fatti trovare da chi vuole partire.</h2>
+            <p class="section-copy">Crea gratuitamente il tuo profilo professionale. Le registrazioni saranno attivate con il collegamento del database.</p>
+          </div>
+          <button class="btn btn-dark" type="button" onclick="alert('Registrazioni in arrivo: stiamo preparando la tua area professionale.')">Avvisami al lancio</button>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="brand" style="color:white"><span class="mark"></span><span>Parti Bene</span></div>
+          <p style="max-width:330px;line-height:1.6;font-size:13px">Il portale italiano che mette in contatto viaggiatori, agenzie e consulenti di viaggio.</p>
+        </div>
+        <div><h4>Esplora</h4><a href="#professionisti">Professionisti</a><a href="#categorie">Tipi di viaggio</a><a href="#come-funziona">Come funziona</a></div>
+        <div><h4>Professionisti</h4><a href="#professionisti-cta">Iscriviti gratis</a><a href="#professionisti-cta">Pubblica offerte</a><a href="#professionisti-cta">Piano Premium</a></div>
+        <div><h4>Informazioni</h4><a href="#">Chi siamo</a><a href="#">Contatti</a><a href="#">Privacy</a></div>
+      </div>
+      <div class="legal"><span>© 2026 Parti Bene. Tutti i diritti riservati.</span><span>Un progetto indipendente per viaggiare con più consapevolezza.</span></div>
+    </div>
+  </footer>
+
+  <script>
+    const professionals = [
+      {name:"Orizzonte Viaggi Roma", initials:"OV", city:"Roma", lat:41.9028, lon:12.4964, modes:["local","online"], tags:["Giappone","Tour organizzati","Famiglie"], filters:["local","online"], rating:"Profilo dimostrativo"},
+      {name:"Elena Travel Designer", initials:"ET", city:"Milano · Online in tutta Italia", lat:45.4642, lon:9.1900, modes:["online"], tags:["Viaggi di nozze","Maldive","Su misura"], filters:["online","nozze"], rating:"Profilo dimostrativo"},
+      {name:"Rotte Blu Crociere", initials:"RB", city:"Napoli", lat:40.8518, lon:14.2681, modes:["local","online"], tags:["Crociere","Mediterraneo","Gruppi"], filters:["local","online","crociere"], rating:"Profilo dimostrativo"},
+      {name:"Toscana Travel Lab", initials:"TL", city:"Firenze", lat:43.7696, lon:11.2558, modes:["local"], tags:["Europa","Weekend","Famiglie"], filters:["local"], rating:"Profilo dimostrativo"},
+      {name:"Marco Viaggi Accessibili", initials:"MV", city:"Bologna · Online", lat:44.4949, lon:11.3426, modes:["local","online"], tags:["Turismo accessibile","Italia","Su misura"], filters:["local","online"], rating:"Profilo dimostrativo"},
+      {name:"Sicilia Mondo Tour", initials:"SM", city:"Palermo", lat:38.1157, lon:13.3615, modes:["local","online"], tags:["Sicilia","Incoming","Tour di gruppo"], filters:["local","online"], rating:"Profilo dimostrativo"}
+    ];
+    let activeFilter = "all";
+    let userPosition = null;
+    let searchTerm = "";
+
+    function distanceKm(a,b,c,d){
+      const R=6371, toRad=x=>x*Math.PI/180;
+      const dLat=toRad(c-a), dLon=toRad(d-b);
+      const q=Math.sin(dLat/2)**2+Math.cos(toRad(a))*Math.cos(toRad(c))*Math.sin(dLon/2)**2;
+      return 2*R*Math.asin(Math.sqrt(q));
+    }
+
+    function renderCards(){
+      const cards=document.getElementById("cards");
+      let list=professionals.map(p=>({...p,distance:userPosition?distanceKm(userPosition.lat,userPosition.lon,p.lat,p.lon):null}));
+      if(userPosition) list.sort((a,b)=>a.distance-b.distance);
+      list=list.filter(p=>{
+        const filterOk=activeFilter==="all"||p.filters.includes(activeFilter);
+        const hay=(p.name+" "+p.city+" "+p.tags.join(" ")).toLowerCase();
+        return filterOk&&(!searchTerm||hay.includes(searchTerm));
+      });
+      cards.innerHTML=list.map(p=>
+        '<article class="card">'+
+          '<div class="card-top"><div class="avatar">'+p.initials+'</div><div class="verified">✓ Verificabile</div></div>'+
+          '<div class="card-body"><h3>'+p.name+'</h3><div class="meta">'+p.city+' · '+p.rating+'</div>'+
+          '<div class="tags">'+p.tags.map(t=>'<span class="tag">'+t+'</span>').join("")+'</div>'+
+          '<div class="distance">'+(p.distance!==null?p.distance.toFixed(1)+' km dalla tua posizione':p.modes.includes("online")?'Disponibile anche online':'Disponibile in sede')+'</div>'+
+          '<div class="card-actions"><button class="btn btn-ghost">Vedi profilo</button><button class="btn btn-primary">Preventivo</button></div></div>'+
+        '</article>'
+      ).join("");
+      document.getElementById("empty").style.display=list.length?"none":"block";
+    }
+
+    function askPosition(){
+      const status=document.getElementById("geoStatus");
+      if(!navigator.geolocation){status.textContent="Il tuo browser non supporta la geolocalizzazione.";return}
+      status.textContent="Ricerca della posizione in corso…";
+      navigator.geolocation.getCurrentPosition(
+        pos=>{
+          userPosition={lat:pos.coords.latitude,lon:pos.coords.longitude};
+          document.getElementById("assistance").value="local";
+          activeFilter="local";
+          document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active",c.dataset.filter==="local"));
+          status.textContent="Posizione rilevata. I risultati sono ordinati per distanza.";
+          renderCards();
+          document.getElementById("professionisti").scrollIntoView({behavior:"smooth"});
+        },
+        err=>{
+          const messages={1:"Permesso non concesso. Puoi cercare manualmente per città o CAP.",2:"Posizione non disponibile. Riprova oppure inserisci la città.",3:"La richiesta è scaduta. Riprova tra qualche istante."};
+          status.textContent=messages[err.code]||"Non è stato possibile rilevare la posizione.";
+        },
+        {enableHighAccuracy:false,timeout:10000,maximumAge:300000}
+      );
+    }
+
+    document.getElementById("geoButton").addEventListener("click",askPosition);
+    document.getElementById("pathGeo").addEventListener("click",askPosition);
+    document.getElementById("filters").addEventListener("click",e=>{
+      if(!e.target.matches(".chip"))return;
+      activeFilter=e.target.dataset.filter;
+      document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active",c===e.target));
+      renderCards();
+    });
+    document.getElementById("searchForm").addEventListener("submit",e=>{
+      e.preventDefault();
+      searchTerm=document.getElementById("destination").value.trim().toLowerCase();
+      const assistance=document.getElementById("assistance").value;
+      activeFilter=assistance;
+      document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active",c.dataset.filter===activeFilter));
+      renderCards();
+      document.getElementById("professionisti").scrollIntoView({behavior:"smooth"});
+    });
+    renderCards();
+  </script>
 </body>
 </html>
