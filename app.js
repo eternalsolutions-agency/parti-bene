@@ -33,7 +33,7 @@
           '<div class="card-body"><h3>'+p.name+'</h3><div class="meta">'+p.city+' · '+p.rating+'</div>'+
           '<div class="tags">'+p.tags.map(t=>'<span class="tag">'+t+'</span>').join("")+'</div>'+
           '<div class="distance">'+(p.distance!==null?p.distance.toFixed(1)+' km dalla tua posizione':p.modes.includes("online")?'Disponibile anche online':'Disponibile in sede')+'</div>'+
-          '<div class="card-actions"><button class="btn btn-ghost">Vedi profilo</button><button class="btn btn-primary">Preventivo</button></div></div>'+
+          '<div class="card-actions"><a class="btn btn-ghost" href="profilo.html">Vedi profilo</a><a class="btn btn-primary" href="contatti.html">Preventivo</a></div></div>'+
         '</article>'
       ).join("");
       document.getElementById("empty").style.display=list.length?"none":"block";
