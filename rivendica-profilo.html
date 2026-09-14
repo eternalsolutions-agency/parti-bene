@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Rivendica e gestisci gratuitamente la scheda della tua agenzia o attività professionale su Parti Bene.">
+<meta name="theme-color" content="#062e59">
+<link rel="icon" type="image/png" href="logo-parti-bene.png">
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="claims.css">
+<title>Rivendica il profilo | Parti Bene</title>
+</head>
+<body>
+<div class="topbar">Iscrizione gratuita per agenzie e consulenti di viaggio</div>
+<header><div class="container nav">
+<a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
+<nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a><a href="area-professionisti.html">Sei un'agenzia?</a></nav>
+<div class="actions"><a class="btn btn-ghost" href="accedi.html">Accedi</a><a class="btn btn-primary" href="area-professionisti.html">Iscriviti gratis</a></div>
+</div></header>
+<main>
+<section class="page-hero"><div class="container claim-shell"><div class="breadcrumbs"><a href="index.html">Home</a> / <a href="professionisti.html">Professionisti</a> / Rivendica il profilo</div><div class="kicker">Gestione gratuita del profilo</div><h1>Questa attività è tua?</h1><p class="hero-copy">Richiedi la verifica e prendi il controllo della scheda per aggiornare informazioni, immagini, specializzazioni e contatti.</p></div></section>
+<section style="padding-top:46px"><div class="container claim-shell">
+<div class="notice"><strong>Nessun costo per la richiesta.</strong> Verificheremo che tu sia il titolare o una persona autorizzata prima di affidarti la gestione del profilo.</div>
+<div class="claim-steps">
+<div class="claim-step"><span>1</span><h3>Invia i tuoi dati</h3><p>Indica l’attività e un contatto professionale verificabile.</p></div>
+<div class="claim-step"><span>2</span><h3>Verifichiamo la richiesta</h3><p>Controlliamo il collegamento tra il richiedente e l’attività.</p></div>
+<div class="claim-step"><span>3</span><h3>Gestisci il profilo</h3><p>Dopo l’approvazione potrai completare e aggiornare la scheda.</p></div>
+</div>
+<div class="panel claim-form"><div class="kicker">Richiesta di rivendicazione</div><h2>Inserisci le informazioni</h2><p class="section-copy">I campi contrassegnati sono necessari per verificare la richiesta.</p>
+<form id="claimForm" class="form-grid">
+<div class="form-field full"><label>Nome dell’agenzia o del professionista *</label><input name="business" required placeholder="Es. Orizzonte Viaggi Roma"></div>
+<div class="form-field"><label>Nome e cognome *</label><input name="name" required autocomplete="name"></div>
+<div class="form-field"><label>Ruolo nell’attività *</label><select name="role" required><option value="">Seleziona</option><option>Titolare</option><option>Legale rappresentante</option><option>Dipendente autorizzato</option><option>Consulente titolare del profilo</option></select></div>
+<div class="form-field"><label>Email professionale *</label><input name="email" type="email" required placeholder="nome@agenzia.it"></div>
+<div class="form-field"><label>Telefono *</label><input name="phone" type="tel" required autocomplete="tel"></div>
+<div class="form-field full"><label>Sito web o pagina professionale</label><input name="website" type="url" placeholder="https://"></div>
+<div class="form-field full"><label>Come possiamo verificare il tuo ruolo? *</label><textarea name="verification" required rows="4" placeholder="Indica sito ufficiale, email aziendale o altre informazioni utili. Non inserire documenti sensibili in questa fase."></textarea></div>
+<label class="consent-line form-field full"><input type="checkbox" required><span>Dichiaro di essere autorizzato a richiedere la gestione di questa attività e di aver letto l’informativa privacy.</span></label>
+<button class="btn btn-primary form-field full" type="submit">Invia la richiesta</button>
+</form>
+<div id="claimMessage" class="notice form-message">Il modulo è pronto, ma non salva ancora i dati. Sarà attivato quando collegheremo Supabase.</div>
+</div>
+<div class="panel" style="margin-top:18px"><h3>Il profilo contiene dati errati o vuoi richiederne la rimozione?</h3><p class="section-copy">Puoi usare la pagina contatti specificando il nome dell’attività e il tipo di intervento richiesto.</p><a class="btn btn-ghost" href="contatti.html" style="margin-top:14px">Richiedi correzione o rimozione</a></div>
+</div></section>
+</main>
+<footer><div class="container"><div class="footer-grid">
+<div><div class="footer-logo-wrap"><img class="footer-logo" src="logo-parti-bene.png" alt="Parti Bene"></div><p style="max-width:330px;line-height:1.6;font-size:13px">Il portale italiano che mette in contatto viaggiatori, agenzie e consulenti di viaggio.</p></div>
+<div><h4>Esplora</h4><a href="professionisti.html">Professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a></div>
+<div><h4>Professionisti</h4><a href="area-professionisti.html">Iscriviti gratis</a><a href="rivendica-profilo.html">Rivendica un profilo</a><a href="area-professionisti.html">Piano Premium</a></div>
+<div><h4>Informazioni</h4><a href="chi-siamo.html">Chi siamo</a><a href="contatti.html">Contatti</a><a href="privacy.html">Privacy</a></div>
+</div><div class="legal"><span>© 2026 Parti Bene.</span><span>Profilo e dati soggetti a verifica</span></div></div></footer>
+<script>document.getElementById("claimForm").addEventListener("submit",function(e){e.preventDefault();document.getElementById("claimMessage").classList.add("is-visible");document.getElementById("claimMessage").scrollIntoView({behavior:"smooth",block:"center"});});</script>
+</body></html>
