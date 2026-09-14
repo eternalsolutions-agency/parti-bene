@@ -1,0 +1,25 @@
+.pro-choice{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0}
+.pro-choice input{position:absolute;opacity:0;pointer-events:none}
+.pro-choice label{display:block;border:2px solid var(--line);border-radius:20px;background:#fff;padding:22px;cursor:pointer;transition:.2s}
+.pro-choice label:hover{border-color:#a9dcd4;transform:translateY(-2px)}
+.pro-choice input:checked+label{border-color:var(--teal);background:#eefaf7;box-shadow:0 12px 30px rgba(24,191,165,.12)}
+.pro-choice strong{display:block;color:var(--navy);font-size:18px;margin-bottom:6px}
+.pro-choice span{color:var(--muted);font-size:13px;line-height:1.5}
+.form-section{border-top:1px solid var(--line);padding-top:24px;margin-top:26px}
+.form-section:first-of-type{border-top:0;padding-top:0}
+.form-section h3{color:var(--navy);margin:0 0 6px}
+.form-section>p{color:var(--muted);font-size:13px;margin:0 0 18px}
+.check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.check-card{display:flex;align-items:center;gap:8px;background:var(--soft);border-radius:12px;padding:11px;font-size:13px;color:var(--ink)}
+.upload-field{border:1px dashed #aac5d1;border-radius:16px;background:var(--soft);padding:18px}
+.upload-field small{display:block;color:var(--muted);margin-top:7px}
+.form-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:22px 0}
+.form-progress span{height:6px;border-radius:999px;background:var(--line)}
+.form-progress span.active{background:var(--teal)}
+.signup-aside{position:sticky;top:98px}
+.benefit-list{display:grid;gap:13px;margin:20px 0}
+.benefit{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+.benefit b{width:28px;height:28px;border-radius:9px;background:#e6f8f4;color:var(--teal-dark);display:grid;place-items:center}
+.benefit strong{display:block;color:var(--navy);font-size:14px}
+.benefit span{color:var(--muted);font-size:12px}
+@media(max-width:760px){.pro-choice,.check-grid{grid-template-columns:1fr}.signup-aside{position:static}}
