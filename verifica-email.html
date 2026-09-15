@@ -36,24 +36,35 @@ const params = new URLSearchParams(location.search);
 const userId = params.get("userId");
 const secret = params.get("secret");
 
-if (!userId || !secret) {
-  message.textContent = "Il collegamento di verifica non è completo o non è più valido.";
+async function showVerified(already = false) {
+  message.innerHTML = already
+    ? "<strong>Email già verificata.</strong><br>Il tuo account è attivo e puoi accedere alla dashboard."
+    : "<strong>Email verificata correttamente.</strong><br>Ora puoi accedere e seguire la tua richiesta.";
+  actions.style.display = "flex";
+}
+
+try {
+  const current = await account.get();
+  if (current.emailVerification) {
+    await showVerified(true);
+  } else if (!userId || !secret) {
+    throw new Error("Il collegamento di verifica non è completo o non è più valido.");
+  } else {
+    try {
+      await account.updateVerification({ userId, secret });
+      await showVerified(false);
+    } catch (verificationError) {
+      const refreshed = await account.get();
+      if (refreshed.emailVerification) await showVerified(true);
+      else throw verificationError;
+    }
+  }
+} catch (error) {
+  message.textContent = readableError(error);
   message.style.background = "#fff1ef";
   message.style.borderColor = "#ffd1ca";
   message.style.color = "#8f3327";
   actions.style.display = "flex";
-} else {
-  try {
-    await account.updateVerification({ userId, secret });
-    message.innerHTML = "<strong>Email verificata correttamente.</strong><br>Ora puoi accedere e seguire la tua richiesta.";
-    actions.style.display = "flex";
-  } catch (error) {
-    message.textContent = readableError(error);
-    message.style.background = "#fff1ef";
-    message.style.borderColor = "#ffd1ca";
-    message.style.color = "#8f3327";
-    actions.style.display = "flex";
-  }
 }
 </script>
 </body>
