@@ -25,6 +25,7 @@
 .admin-empty{min-height:240px;display:grid;place-items:center;text-align:center;color:var(--muted)}
 @media(max-width:850px){.admin-layout{grid-template-columns:1fr}.admin-list{max-height:360px}.admin-details{grid-template-columns:1fr}}
 </style>
+<script src="effects.js" defer></script>
 </head>
 <body>
 <div class="topbar">Pannello amministrativo · accesso riservato</div>
@@ -36,7 +37,7 @@
 <main>
 <section class="page-hero"><div class="container"><div class="kicker">Amministrazione</div><h1>Richieste professionisti</h1><p class="hero-copy">Esamina, approva o richiedi integrazioni prima della pubblicazione.</p></div></section>
 <section><div class="container">
-<div id="accessMessage" class="panel admin-empty">Verifica dei permessi amministrativi…</div>
+<div id="accessMessage" class="panel admin-empty loading">Verifica dei permessi amministrativi…</div>
 <div id="adminApp" class="admin-layout" hidden>
 <aside class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px"><h3 style="margin:0;color:var(--navy)">Richieste</h3><span id="requestCount" class="tag">0</span></div><div id="requestList" class="admin-list"></div></aside>
 <div id="detailPanel" class="panel admin-empty">Seleziona una richiesta dall’elenco.</div>
@@ -152,9 +153,9 @@ document.getElementById("logoutButton").addEventListener("click",async()=>{await
 try{
  const user=await account.get();
  if(!(user.labels||[]).includes("admin"))throw new Error("Il tuo account non dispone del ruolo amministratore.");
- accessMessage.hidden=true;app.hidden=false;await loadRequests();
+ accessMessage.classList.remove("loading");accessMessage.hidden=true;app.hidden=false;await loadRequests();
 }catch(error){
- accessMessage.textContent=readableError(error);
+ accessMessage.classList.remove("loading");accessMessage.textContent=readableError(error);
  if(error.code===401)setTimeout(()=>location.replace("accedi.html?redirect=admin.html"),1000);
 }
 </script>
