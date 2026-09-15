@@ -37,7 +37,7 @@
 </div><div class="legal"><span>© 2026 Parti Bene.</span><span>Profili soggetti ad approvazione</span></div></div></footer>
 <script type="module">
 import { APPWRITE_CONFIG } from "./appwrite-config.js";
-const fallbackImage="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=900&q=80";
+import { getDestinationImage } from "./destination-images.js";
 let professionals=[],userPosition=null;
 const cards=document.getElementById("professionalCards"),empty=document.getElementById("emptyResults"),message=document.getElementById("listMessage");
 function escapeHtml(value=""){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]));}
@@ -58,7 +58,7 @@ function render(){
  cards.innerHTML=list.map(p=>{
   const tags=[...(p.specializzazioni||[]),...(p.destinazioni||[])].slice(0,3);
   const meta=[p.comune,p.provincia,p.disponibile_online?"Disponibile online":null].filter(Boolean).join(" · ");
-  return '<article class="card"><div class="card-top" style="background-image:url('+fallbackImage+')"><div class="avatar">'+initials(p.nome)+'</div><div class="verified">'+(p.profilo_verificato?"✓ Verificato":"Profilo registrato")+'</div></div><div class="card-body"><h3>'+escapeHtml(p.nome)+'</h3><div class="meta">'+escapeHtml(meta||"Consulenza di viaggio")+'</div><div class="tags">'+tags.map(t=>'<span class="tag">'+escapeHtml(t)+'</span>').join("")+'</div>'+(p.distance!==null?'<div class="distance">'+p.distance.toFixed(1)+' km dalla tua posizione</div>':"")+'<div class="card-actions"><a class="btn btn-ghost" href="profilo.html?slug='+encodeURIComponent(p.slug)+'">Vedi profilo</a><a class="btn btn-primary" href="richiedi-proposte.html?professionista='+encodeURIComponent(p.slug)+'">Preventivo</a></div></div></article>';
+  return '<article class="card"><div class="card-top" style="background-image:url('+getDestinationImage(p.destinazioni,p.nome+" "+(p.descrizione||""))+')"><div class="avatar">'+initials(p.nome)+'</div><div class="verified">'+(p.profilo_verificato?"✓ Verificato":"Profilo registrato")+'</div></div><div class="card-body"><h3>'+escapeHtml(p.nome)+'</h3><div class="meta">'+escapeHtml(meta||"Consulenza di viaggio")+'</div><div class="tags">'+tags.map(t=>'<span class="tag">'+escapeHtml(t)+'</span>').join("")+'</div>'+(p.distance!==null?'<div class="distance">'+p.distance.toFixed(1)+' km dalla tua posizione</div>':"")+'<div class="card-actions"><a class="btn btn-ghost" href="profilo.html?slug='+encodeURIComponent(p.slug)+'">Vedi profilo</a><a class="btn btn-primary" href="richiedi-proposte.html?professionista='+encodeURIComponent(p.slug)+'">Preventivo</a></div></div></article>';
  }).join("");
  empty.style.display=list.length?"none":"block";
 }
