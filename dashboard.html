@@ -25,6 +25,8 @@
 .dashboard-media img{width:100%;height:180px;object-fit:cover;border-radius:16px;background:var(--soft)}
 .dashboard-media img:last-child{height:180px}
 .loading{min-height:260px;display:grid;place-items:center;color:var(--muted)}
+.profile-edit-form{margin-top:26px}
+.profile-edit-form .consent-line{background:var(--orange-soft);border:1px solid #ffd8bd;border-radius:14px;padding:14px}
 @media(max-width:850px){.dashboard-grid{grid-template-columns:1fr}.dashboard-sidebar{position:static}.dashboard-cards{grid-template-columns:1fr}}
 @media(max-width:620px){.detail-grid,.dashboard-media{grid-template-columns:1fr}.dashboard-media img{height:190px}}
 </style>
@@ -83,6 +85,27 @@
 <div style="margin-top:26px"><h3 style="color:var(--navy)">Presentazione</h3><p id="presentation" class="section-copy"></p></div>
 <div id="mediaSection" style="margin-top:26px" hidden><h3 style="color:var(--navy)">Immagini inviate</h3><div id="mediaGrid" class="dashboard-media"></div></div>
 </div>
+<div id="profileLinkNotice" class="panel" hidden>
+<div class="kicker">Profilo pubblico</div><h2 style="font-size:30px">Collegamento in corso</h2>
+<p class="section-copy">La richiesta è approvata, ma il profilo deve essere collegato al tuo account. Un amministratore può completare il collegamento premendo nuovamente “Approva e pubblica”.</p>
+</div>
+<div id="profileEditor" class="panel" hidden>
+<div style="display:flex;justify-content:space-between;gap:16px;align-items:start;flex-wrap:wrap">
+<div><div class="kicker">Profilo pubblico</div><h2 style="font-size:32px">Modifica la tua scheda</h2><p class="section-copy">Le modifiche salvate saranno visibili nel portale.</p></div>
+<a id="publicProfileLink" class="btn btn-ghost" href="profilo.html">Visualizza profilo</a>
+</div>
+<form id="profileForm" class="form-grid profile-edit-form">
+<div class="form-field full"><label>Nome mostrato *</label><input name="nome" required></div>
+<div class="form-field"><label>Comune</label><input name="comune"></div>
+<div class="form-field"><label>Provincia</label><input name="provincia" maxlength="2" placeholder="RM"></div>
+<div class="form-field full"><label>Descrizione *</label><textarea name="descrizione" rows="6" required></textarea></div>
+<div class="form-field full"><label>Specializzazioni</label><input name="specializzazioni" placeholder="Es. viaggi di nozze, crociere, famiglie"><small class="meta">Separa le voci con una virgola.</small></div>
+<div class="form-field full"><label>Destinazioni principali</label><input name="destinazioni" placeholder="Es. Giappone, Maldive, Stati Uniti"><small class="meta">Separa le destinazioni con una virgola.</small></div>
+<label class="consent-line form-field full"><input name="disponibile_online" type="checkbox"><span>Disponibile per consulenze online</span></label>
+<button id="saveProfileButton" class="btn btn-primary form-field full" type="submit">Salva le modifiche</button>
+</form>
+<div id="profileMessage" class="notice" role="status" aria-live="polite" hidden></div>
+</div>
 </div>
 </div></section>
 </main>
@@ -98,6 +121,20 @@ const statusLabels = {
   rifiutata: ["Non approvata", "status-rejected", "La richiesta non è stata approvata. Contatta Parti Bene per maggiori informazioni."]
 };
 const modeLabels = { in_sede:"In sede", online:"Online", su_appuntamento:"Su appuntamento", mista:"In sede e online" };
+let currentProfile = null;
+const profileForm = document.getElementById("profileForm");
+const profileMessage = document.getElementById("profileMessage");
+
+function apiHeaders() {
+  return {"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"};
+}
+async function profileApi(path,{method="GET",body}={}) {
+  const response=await fetch(APPWRITE_CONFIG.endpoint+path,{method,credentials:"include",headers:apiHeaders(),body:body?JSON.stringify(body):undefined});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok){const error=new Error(result.message||"Operazione non riuscita.");error.code=response.status;error.type=result.type;throw error;}
+  return result;
+}
+function commaList(value){return String(value||"").split(",").map(item=>item.trim()).filter(Boolean);}
 
 function setText(id, value, fallback = "Non indicato") {
   document.getElementById(id).textContent = value || fallback;
@@ -126,6 +163,24 @@ async function listMyRequests() {
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.message || "Impossibile caricare la richiesta.");
   return (result.rows || []).sort((a,b) => new Date(b.$createdAt) - new Date(a.$createdAt));
+}
+async function loadOwnedProfile(userId) {
+  const result=await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows");
+  currentProfile=(result.rows||[]).find(row=>row.utente_id===userId)||null;
+  if(!currentProfile){
+    document.getElementById("profileLinkNotice").hidden=false;
+    return;
+  }
+  document.getElementById("profileLinkNotice").hidden=true;
+  document.getElementById("profileEditor").hidden=false;
+  profileForm.elements.nome.value=currentProfile.nome||"";
+  profileForm.elements.comune.value=currentProfile.comune||"";
+  profileForm.elements.provincia.value=currentProfile.provincia||"";
+  profileForm.elements.descrizione.value=currentProfile.descrizione||"";
+  profileForm.elements.specializzazioni.value=(currentProfile.specializzazioni||[]).join(", ");
+  profileForm.elements.destinazioni.value=(currentProfile.destinazioni||[]).join(", ");
+  profileForm.elements.disponibile_online.checked=Boolean(currentProfile.disponibile_online);
+  document.getElementById("publicProfileLink").href="profilo.html?id="+encodeURIComponent(currentProfile.$id);
 }
 function renderRequest(row) {
   document.getElementById("loadingPanel").hidden = true;
@@ -164,7 +219,10 @@ try {
   document.getElementById("userAvatar").textContent = (user.name || "PB").split(" ").map(part => part[0]).slice(0,2).join("").toUpperCase();
   document.getElementById("adminLink").hidden = !(user.labels || []).includes("admin");
   const requests = await listMyRequests();
-  if (requests.length) renderRequest(requests[0]);
+  if (requests.length) {
+    renderRequest(requests[0]);
+    if (requests[0].stato === "approvata") await loadOwnedProfile(user.$id);
+  }
   else {
     document.getElementById("loadingPanel").hidden = true;
     document.getElementById("emptyPanel").hidden = false;
@@ -174,6 +232,30 @@ try {
   catch (_) { location.replace("accedi.html?redirect=dashboard.html"); }
   document.getElementById("loadingPanel").textContent = readableError(error);
 }
+profileForm.addEventListener("submit",async event=>{
+  event.preventDefault();
+  if(!currentProfile)return;
+  const button=document.getElementById("saveProfileButton");
+  button.disabled=true;button.textContent="Salvataggio…";profileMessage.hidden=false;profileMessage.textContent="Aggiornamento del profilo in corso…";
+  try{
+    const data=new FormData(profileForm);
+    const update={
+      nome:String(data.get("nome")).trim(),
+      comune:String(data.get("comune")||"").trim()||null,
+      provincia:String(data.get("provincia")||"").trim().toUpperCase()||null,
+      descrizione:String(data.get("descrizione")).trim(),
+      specializzazioni:commaList(data.get("specializzazioni")),
+      destinazioni:commaList(data.get("destinazioni")),
+      disponibile_online:Boolean(data.get("disponibile_online"))
+    };
+    await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+currentProfile.$id,{method:"PATCH",body:{data:update}});
+    currentProfile={...currentProfile,...update};
+    profileMessage.textContent="Profilo aggiornato correttamente.";
+  }catch(error){
+    profileMessage.textContent=readableError(error);
+    profileMessage.style.background="#fff1ef";profileMessage.style.borderColor="#ffd1ca";profileMessage.style.color="#913428";
+  }finally{button.disabled=false;button.textContent="Salva le modifiche";}
+});
 document.getElementById("logoutButton").addEventListener("click", async () => {
   await account.deleteSession({ sessionId: "current" });
   location.replace("index.html");
