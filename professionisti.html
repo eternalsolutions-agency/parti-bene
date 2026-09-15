@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="logo-parti-bene.png">
 <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="claims.css">
 <title>Trova professionisti | Parti Bene</title>
+<script src="effects.js" defer></script>
 </head>
 <body>
 <div class="topbar">Iscrizione gratuita per agenzie e consulenti di viaggio</div>
@@ -23,7 +24,7 @@
 <div class="field"><label for="searchMode">Assistenza</label><select id="searchMode"><option value="all">Tutte</option><option value="local">In sede</option><option value="online">Online</option></select></div>
 <button class="btn btn-primary" type="submit">Cerca</button></form></div></section>
 <section><div class="container">
-<div class="section-head"><div><div class="kicker">Professionisti pubblicati</div><h2 id="resultTitle">Caricamento…</h2></div><button class="btn btn-ghost" id="locate" type="button">◎ Ordina per distanza</button></div>
+<div class="section-head"><div><div class="kicker">Professionisti pubblicati</div><h2 id="resultTitle" class="skeleton-title">Caricamento…</h2></div><button class="btn btn-ghost" id="locate" type="button">◎ Ordina per distanza</button></div>
 <div id="listMessage" class="notice" style="display:none;margin-bottom:20px"></div>
 <div id="professionalCards" class="cards"></div>
 <div id="emptyResults" class="empty" style="display:none"><h3>Nessun professionista trovato</h3><p>Prova a cambiare località, destinazione o modalità di assistenza.</p></div>
@@ -54,7 +55,7 @@ function render(){
   return (!travel||travelText.includes(travel))&&(!city||cityText.includes(city))&&modeOk;
  }).map(p=>({...p,distance:userPosition&&p.latitudine!=null&&p.longitudine!=null?distanceKm(userPosition.lat,userPosition.lon,p.latitudine,p.longitudine):null}));
  if(userPosition)list.sort((a,b)=>(a.distance??Infinity)-(b.distance??Infinity));
- document.getElementById("resultTitle").textContent=list.length+" "+(list.length===1?"professionista disponibile":"professionisti disponibili");
+ document.getElementById("resultTitle").classList.remove("skeleton-title");document.getElementById("resultTitle").textContent=list.length+" "+(list.length===1?"professionista disponibile":"professionisti disponibili");
  cards.innerHTML=list.map(p=>{
   const tags=[...(p.specializzazioni||[]),...(p.destinazioni||[])].slice(0,3);
   const meta=[p.comune,p.provincia,p.disponibile_online?"Disponibile online":null].filter(Boolean).join(" · ");
@@ -69,7 +70,7 @@ async function load(){
   if(!response.ok)throw new Error(result.message||"Impossibile caricare i professionisti.");
   professionals=(result.rows||[]).filter(row=>row.stato==="pubblicato");
   render();
- }catch(error){document.getElementById("resultTitle").textContent="Professionisti";message.style.display="block";message.textContent="Non è stato possibile caricare i profili. Riprova tra qualche minuto.";empty.style.display="block";}
+ }catch(error){document.getElementById("resultTitle").classList.remove("skeleton-title");document.getElementById("resultTitle").textContent="Professionisti";message.style.display="block";message.textContent="Non è stato possibile caricare i profili. Riprova tra qualche minuto.";empty.style.display="block";}
 }
 document.getElementById("searchForm").addEventListener("submit",e=>{e.preventDefault();render();});
 document.getElementById("locate").addEventListener("click",()=>{
