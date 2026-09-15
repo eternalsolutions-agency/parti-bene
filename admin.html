@@ -116,6 +116,7 @@ async function updateRequest(row,status,notes){
 }
 async function approve(row,notes){
  const professionalData={
+  utente_id:row.utente_id,
   nome:row.nome_attivita,tipologia:row.tipologia,
   slug:slugify(row.nome_attivita)+"-"+row.$id.slice(-6),
   descrizione:row.presentazione,comune:row.comune,provincia:row.provincia,
@@ -125,10 +126,23 @@ async function approve(row,notes){
   stato:"pubblicato",data_approvazione:new Date().toISOString()
  };
  Object.keys(professionalData).forEach(key=>{if(professionalData[key]===null||professionalData[key]===undefined||professionalData[key]==="")delete professionalData[key];});
- await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows",{
-  method:"POST",
-  body:{rowId:ID.unique(),data:professionalData,permissions:[Permission.read(Role.any())]}
- });
+ const permissions=[
+  Permission.read(Role.any()),
+  Permission.update(Role.user(row.utente_id)),
+  Permission.update(Role.label("admin")),
+  Permission.delete(Role.label("admin"))
+ ];
+ const listed=await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows");
+ const existing=(listed.rows||[]).find(item=>item.utente_id===row.utente_id||(!item.utente_id&&item.nome===row.nome_attivita));
+ if(existing){
+  await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+existing.$id,{
+   method:"PATCH",body:{data:professionalData,permissions}
+  });
+ }else{
+  await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows",{
+   method:"POST",body:{rowId:ID.unique(),data:professionalData,permissions}
+  });
+ }
  await updateRequest(row,"approvata",notes);
 }
 listElement.addEventListener("click",event=>{const button=event.target.closest("[data-id]");if(button){const row=requests.find(item=>item.$id===button.dataset.id);if(row)renderDetail(row);}});
