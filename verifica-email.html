@@ -44,7 +44,7 @@ if (!userId || !secret) {
   actions.style.display = "flex";
 } else {
   try {
-    await account.updateEmailVerification({ userId, secret });
+    await account.updateVerification({ userId, secret });
     message.innerHTML = "<strong>Email verificata correttamente.</strong><br>Ora puoi accedere e seguire la tua richiesta.";
     actions.style.display = "flex";
   } catch (error) {
