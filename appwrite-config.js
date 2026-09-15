@@ -1,0 +1,35 @@
+import {
+  Client,
+  Account,
+  TablesDB,
+  Storage,
+  ID,
+  Permission,
+  Role
+} from "https://cdn.jsdelivr.net/npm/appwrite/+esm";
+
+export const APPWRITE_CONFIG = Object.freeze({
+  endpoint: "https://fra.cloud.appwrite.io/v1",
+  projectId: "6aa8e03b000fb4dd909e",
+  databaseId: "6aa8e1a70039d07d09d6",
+  professionalsTableId: "6aa8e22900034b468dc2",
+  applicationsTableId: "6aa8e72c0018ffbfe9f5",
+  mediaBucketId: "6aa8ea22003dda7c03ca"
+});
+
+export const client = new Client()
+  .setEndpoint(APPWRITE_CONFIG.endpoint)
+  .setProject(APPWRITE_CONFIG.projectId);
+
+export const account = new Account(client);
+export const tablesDB = new TablesDB(client);
+export const storage = new Storage(client);
+export { ID, Permission, Role };
+
+export function readableError(error) {
+  if (!error) return "Si è verificato un errore. Riprova.";
+  if (error.code === 401) return "Email o password non corrette.";
+  if (error.code === 409) return "Esiste già un account associato a questa email.";
+  if (error.code === 429) return "Troppi tentativi ravvicinati. Attendi qualche minuto e riprova.";
+  return error.message || "Si è verificato un errore. Riprova.";
+}
