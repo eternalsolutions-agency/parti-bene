@@ -53,6 +53,7 @@ const accessMessage = document.getElementById("accessMessage");
 const listElement = document.getElementById("requestList");
 const detailPanel = document.getElementById("detailPanel");
 let requests = [];
+let professionals = [];
 let selectedId = null;
 
 const statusLabels={in_attesa:"In attesa",da_integrare:"Da integrare",approvata:"Approvata",rifiutata:"Rifiutata"};
@@ -75,8 +76,12 @@ function tags(values){return (Array.isArray(values)&&values.length)?values.map(v
 function detailsRow(label,value){return '<div class="admin-detail"><small>'+label+'</small><strong>'+escapeHtml(value||"Non indicato")+'</strong></div>';}
 
 async function loadRequests(){
- const result=await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.applicationsTableId+"/rows");
+ const [result,professionalResult]=await Promise.all([
+  api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.applicationsTableId+"/rows"),
+  api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows")
+ ]);
  requests=(result.rows||[]).sort((a,b)=>new Date(b.$createdAt)-new Date(a.$createdAt));
+ professionals=professionalResult.rows||[];
  document.getElementById("requestCount").textContent=requests.length;
  renderList();
  if(selectedId){
@@ -106,12 +111,26 @@ function renderDetail(row){
  '<h3 style="color:var(--navy);margin-top:22px">Destinazioni</h3><div class="admin-tags">'+tags(row.destinazioni)+'</div>'+
  '<h3 style="color:var(--navy);margin-top:22px">Presentazione</h3><p class="section-copy">'+escapeHtml(row.presentazione)+'</p>'+
  '<div class="form-field full" style="margin-top:22px"><label for="adminNotes">Note amministratore</label><textarea id="adminNotes" rows="3" placeholder="Motivo della richiesta di integrazione o del rifiuto">'+escapeHtml(row.note_amministratore||"")+'</textarea></div>'+
+ '<div class="form-field full" style="margin-top:22px"><label for="existingProfile">Collega una scheda pubblica esistente</label><select id="existingProfile"><option value="">Seleziona il profilo</option>'+professionals.map(item=>'<option value="'+escapeHtml(item.$id)+'" '+(item.utente_id===row.utente_id?'selected':'')+'>'+escapeHtml(item.nome)+' · '+escapeHtml(item.comune||"Località non indicata")+'</option>').join("")+'</select></div>'+
  '<div id="actionMessage" class="notice" style="display:none;margin-top:16px"></div>'+
- '<div class="admin-actions"><button class="btn btn-primary" data-action="approve">Approva e pubblica</button><button class="btn btn-ghost" data-action="integrate">Richiedi integrazioni</button><button class="btn btn-danger" data-action="reject">Rifiuta</button></div>';
+ '<div class="admin-actions"><button class="btn btn-primary" data-action="approve">Approva e pubblica</button><button class="btn btn-dark" data-action="link">Collega profilo esistente</button><button class="btn btn-ghost" data-action="integrate">Richiedi integrazioni</button><button class="btn btn-danger" data-action="reject">Rifiuta</button></div>';
 }
 async function updateRequest(row,status,notes){
  return api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.applicationsTableId+"/rows/"+row.$id,{
   method:"PATCH",body:{data:{stato:status,note_amministratore:notes||null}}
+ });
+}
+async function linkExistingProfile(row,profileId){
+ if(!profileId)throw new Error("Seleziona prima il profilo pubblico da collegare.");
+ if(!row.utente_id)throw new Error("La richiesta non contiene l’ID dell’utente.");
+ const permissions=[
+  Permission.read(Role.any()),
+  Permission.update(Role.user(row.utente_id)),
+  Permission.update(Role.label("admin")),
+  Permission.delete(Role.label("admin"))
+ ];
+ return api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+profileId,{
+  method:"PATCH",body:{data:{utente_id:row.utente_id},permissions}
  });
 }
 async function approve(row,notes){
@@ -154,9 +173,13 @@ detailPanel.addEventListener("click",async event=>{
  button.disabled=true;message.style.display="block";message.textContent="Operazione in corso…";
  try{
   if(button.dataset.action==="approve")await approve(row,notes);
+  if(button.dataset.action==="link"){
+   await linkExistingProfile(row,document.getElementById("existingProfile").value);
+   message.textContent="Profilo collegato correttamente. Ora sarà modificabile dalla dashboard.";
+  }
   if(button.dataset.action==="integrate")await updateRequest(row,"da_integrare",notes);
   if(button.dataset.action==="reject")await updateRequest(row,"rifiutata",notes);
-  message.textContent="Operazione completata correttamente.";
+  if(button.dataset.action!=="link")message.textContent="Operazione completata correttamente.";
   await loadRequests();
  }catch(error){message.textContent=readableError(error);message.style.background="#fff1ef";message.style.borderColor="#ffd1ca";message.style.color="#913428";}
  finally{button.disabled=false;}
