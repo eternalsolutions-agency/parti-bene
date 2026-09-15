@@ -11,12 +11,12 @@
 <style>
 .dashboard-grid{display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:start}
 .dashboard-sidebar{position:sticky;top:98px}
-.user-avatar{width:62px;height:62px;border-radius:20px;background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;display:grid;place-items:center;font-size:22px;font-weight:900;margin-bottom:15px}
+.user-avatar{width:62px;height:62px;border-radius:20px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 70%,var(--orange) 140%);box-shadow:0 12px 28px rgba(255,138,61,.18);color:#fff;display:grid;place-items:center;font-size:22px;font-weight:900;margin-bottom:15px}
 .status-pill{display:inline-flex;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:900}
-.status-pending{background:#fff5dc;color:#8a6413}.status-review{background:#eaf3ff;color:#275c91}
+.status-pending{background:var(--orange-soft);color:var(--orange-dark);border:1px solid #ffd2b6}.status-review{background:#eaf3ff;color:#275c91}
 .status-approved{background:#e6f8f4;color:#17705f}.status-rejected{background:#fff1ef;color:#913428}
 .dashboard-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}
-.dashboard-card{background:var(--soft);border-radius:17px;padding:18px}
+.dashboard-card{background:linear-gradient(145deg,var(--soft),#fff8f2);border:1px solid #f4dfd1;border-radius:17px;padding:18px;border-top:3px solid var(--orange)}
 .dashboard-card small{display:block;color:var(--muted);margin-bottom:7px}.dashboard-card strong{color:var(--navy);font-size:17px}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;margin-top:22px}
 .detail{border-bottom:1px solid var(--line);padding:13px 0}.detail span{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}.detail strong{color:var(--navy);font-size:14px}
