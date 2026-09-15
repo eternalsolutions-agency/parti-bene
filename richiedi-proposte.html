@@ -50,7 +50,7 @@
 <label class="consent-line form-field full"><input type="checkbox" required><span>Accetto l’informativa privacy e autorizzo Parti Bene a utilizzare questi dati per individuare e contattare professionisti compatibili.</span></label>
 <button class="btn btn-primary form-field full" type="submit">Richiedi fino a 3 proposte</button>
 </form>
-<div id="proposalMessage" class="notice form-message">La richiesta è compilata correttamente, ma non è stata inviata: il salvataggio e l’assegnazione ai professionisti saranno attivati con Supabase.</div>
+<div id="proposalMessage" class="notice form-message">Compila il modulo: la richiesta sarà salvata in modo riservato e inoltrata fino a tre professionisti compatibili.</div>
 </div>
 <aside class="panel request-aside"><div class="kicker">Come funziona</div><h3>Una richiesta, fino a tre risposte</h3><div class="request-summary">
 <div class="summary-row"><span>1. Descrivi</span><strong>Il viaggio che desideri</strong></div>
@@ -66,10 +66,43 @@
 <div><h4>Professionisti</h4><a href="sei-un-agenzia.html">Iscrivi la tua agenzia</a><a href="sei-un-consulente.html">Iscriviti come consulente</a><a href="rivendica-profilo.html">Rivendica un profilo</a></div>
 <div><h4>Informazioni</h4><a href="chi-siamo.html">Chi siamo</a><a href="contatti.html">Contatti</a><a href="privacy.html">Privacy</a></div>
 </div><div class="legal"><span>© 2026 Parti Bene.</span><span>Richieste senza obbligo d’acquisto</span></div></div></footer>
-<script>
+<script type="module">
+import { APPWRITE_CONFIG, ID } from "./appwrite-config.js";
 const form=document.getElementById("proposalForm"),destination=document.getElementById("tripDestination"),period=document.getElementById("tripPeriod"),budget=document.getElementById("tripBudget");
 function updateSummary(){const d=destination.value.trim(),p=period.value.trim(),b=budget.value;document.title=(d?"Viaggio "+d+" | ":"")+"Parti Bene";}
 [destination,period,budget].forEach(el=>el.addEventListener("input",updateSummary));
-form.addEventListener("submit",function(e){e.preventDefault();document.getElementById("proposalMessage").classList.add("is-visible");document.getElementById("proposalMessage").scrollIntoView({behavior:"smooth",block:"center"});});
+form.addEventListener("submit",async function(e){
+ e.preventDefault();
+ const message=document.getElementById("proposalMessage"),button=form.querySelector('button[type="submit"]'),data=new FormData(form);
+ button.disabled=true;button.textContent="Invio in corso…";message.classList.add("is-visible");message.textContent="Stiamo registrando la tua richiesta…";
+ try{
+  const payload={
+   tipologia_viaggio:String(data.get("trip_type")),
+   destinazione:String(data.get("destination")).trim(),
+   partenza_da:String(data.get("departure")).trim(),
+   periodo:String(data.get("period")).trim(),
+   adulti:Number(data.get("adults")),
+   bambini:Number(data.get("children")||0),
+   durata:String(data.get("duration")||"").trim()||null,
+   budget:String(data.get("budget")||"").trim()||null,
+   assistenza:String(data.get("assistance")),
+   dettagli:String(data.get("details")||"").trim()||null,
+   nome_cliente:String(data.get("name")).trim(),
+   telefono:String(data.get("phone")).trim(),
+   email:String(data.get("email")).trim(),
+   professionista_preferito:new URLSearchParams(location.search).get("professionista")||null,
+   stato:"nuova",numero_assegnazioni:0,privacy_accettata:true
+  };
+  Object.keys(payload).forEach(key=>{if(payload[key]===null)delete payload[key];});
+  const response=await fetch(APPWRITE_CONFIG.endpoint+"/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.travelRequestsTableId+"/rows",{
+   method:"POST",headers:{"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"},
+   body:JSON.stringify({rowId:ID.unique(),data:payload,permissions:[]})
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.message||"Non è stato possibile inviare la richiesta.");
+  form.reset();message.textContent="Richiesta inviata correttamente. Parti Bene selezionerà fino a tre professionisti compatibili, che potranno contattarti senza alcun obbligo di acquisto.";
+ }catch(error){message.textContent=error.message;message.style.background="#fff1ef";message.style.color="#913428";}
+ finally{button.disabled=false;button.textContent="Richiedi fino a 3 proposte";message.scrollIntoView({behavior:"smooth",block:"center"});}
+});
 </script>
 </body></html>
