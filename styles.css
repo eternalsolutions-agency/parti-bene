@@ -235,3 +235,32 @@ linear-gradient(145deg,#eef9f7 0%,#f8fbfc 55%,#fff4eb 100%)}
 .footer-logo-wrap{box-shadow:0 10px 30px rgba(0,0,0,.12)}
 footer{border-top:5px solid var(--orange)}
 @media(max-width:620px){.page-hero::after{margin-top:20px}.panel{box-shadow:0 8px 26px rgba(6,46,89,.05)}}
+
+
+/* Effetti grafici accessibili */
+.motion-enabled .reveal-item{opacity:0;transform:translateY(22px);transition:opacity .65s ease var(--reveal-delay,0ms),transform .65s cubic-bezier(.2,.75,.25,1) var(--reveal-delay,0ms)}
+.motion-enabled .reveal-item.is-revealed{opacity:1;transform:none}
+.hero::before{transform:translateY(var(--travel-shift,0));transition:transform .12s linear}
+.hero .container{position:relative;z-index:2}
+.hero .container::before{content:"";position:absolute;right:5%;bottom:-52px;width:270px;height:70px;border-top:2px dashed rgba(255,138,61,.5);border-radius:50%;transform:rotate(-8deg);pointer-events:none}
+.hero .container::after{content:"";position:absolute;right:6%;bottom:7px;width:11px;height:11px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 0 rgba(255,138,61,.45);animation:routePulse 2.2s ease-out infinite;pointer-events:none}
+.card-top{overflow:hidden;background-size:105%;transition:background-size .75s cubic-bezier(.2,.7,.2,1)}
+.card:hover .card-top{background-size:113%}
+.category img,.path-photo,.offer-card img,.mini-offer img,.profile-gallery img{transition:transform .75s cubic-bezier(.2,.7,.2,1),filter .45s ease}
+.category:hover img,.path:hover .path-photo,.offer-card:hover img,.mini-offer:hover img,.profile-gallery img:hover{transform:scale(1.06);filter:saturate(1.08)}
+.category,.path,.offer-card,.mini-offer,.profile-gallery{overflow:hidden}
+.btn::before{content:"";position:absolute;top:-90%;left:-65%;width:38%;height:280%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.52),transparent);transform:rotate(20deg);transition:left .58s ease;pointer-events:none}
+.btn:hover::before{left:130%}
+.button-tap{animation:buttonTap .28s ease}
+.profile-cover{background-size:106%;animation:coverArrival 1.15s cubic-bezier(.2,.75,.25,1) both;transition:background-size 5s ease}
+.profile-cover:hover{background-size:111%}
+.status-pill,.admin-status{animation:statusPop .45s cubic-bezier(.2,1.4,.4,1) both}
+.loading,.skeleton-title{position:relative;overflow:hidden;background:linear-gradient(100deg,#eef3f5 20%,#fff 42%,#eef3f5 64%);background-size:220% 100%;animation:skeletonMove 1.35s linear infinite}
+.skeleton-title{color:transparent!important;border-radius:10px;min-height:1.2em;max-width:360px}
+@keyframes routePulse{0%{box-shadow:0 0 0 0 rgba(255,138,61,.5)}70%{box-shadow:0 0 0 14px rgba(255,138,61,0)}100%{box-shadow:0 0 0 0 rgba(255,138,61,0)}}
+@keyframes buttonTap{50%{transform:scale(.965)}}
+@keyframes coverArrival{from{opacity:.2;background-size:118%}to{opacity:1;background-size:106%}}
+@keyframes statusPop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+@keyframes skeletonMove{to{background-position:-220% 0}}
+@media(max-width:900px){.hero .container::before,.hero .container::after{display:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal-item,.hero::before,.profile-cover,.status-pill,.admin-status,.loading,.skeleton-title{animation:none!important;transition:none!important;transform:none!important;opacity:1!important}.category img,.path-photo,.offer-card img,.mini-offer img,.profile-gallery img,.card-top,.btn::before{transition:none!important}}
