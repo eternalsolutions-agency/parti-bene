@@ -112,7 +112,7 @@
 
 <footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>Area protetta da Appwrite</span></div></div></footer>
 <script type="module">
-import { APPWRITE_CONFIG, account, storage, readableError } from "./appwrite-config.js";
+import { APPWRITE_CONFIG, account, storage, Permission, Role, readableError } from "./appwrite-config.js";
 
 const statusLabels = {
   in_attesa: ["In attesa", "status-pending", "La richiesta è stata ricevuta ed è in attesa del controllo di Parti Bene."],
@@ -164,9 +164,24 @@ async function listMyRequests() {
   if (!response.ok) throw new Error(result.message || "Impossibile caricare la richiesta.");
   return (result.rows || []).sort((a,b) => new Date(b.$createdAt) - new Date(a.$createdAt));
 }
-async function loadOwnedProfile(userId) {
+async function loadOwnedProfile(user, application) {
   const result=await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows");
-  currentProfile=(result.rows||[]).find(row=>row.utente_id===userId)||null;
+  const rows=result.rows||[];
+  currentProfile=rows.find(row=>row.utente_id===user.$id)||null;
+  if(!currentProfile && (user.labels||[]).includes("admin")){
+    const legacyProfile=rows.find(row=>row.nome===application.nome_attivita);
+    if(legacyProfile){
+      const permissions=[
+        Permission.read(Role.any()),
+        Permission.update(Role.user(user.$id)),
+        Permission.update(Role.label("admin")),
+        Permission.delete(Role.label("admin"))
+      ];
+      currentProfile=await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+legacyProfile.$id,{
+        method:"PATCH",body:{data:{utente_id:user.$id},permissions}
+      });
+    }
+  }
   if(!currentProfile){
     document.getElementById("profileLinkNotice").hidden=false;
     return;
@@ -221,7 +236,7 @@ try {
   const requests = await listMyRequests();
   if (requests.length) {
     renderRequest(requests[0]);
-    if (requests[0].stato === "approvata") await loadOwnedProfile(user.$id);
+    if (requests[0].stato === "approvata") await loadOwnedProfile(user, requests[0]);
   }
   else {
     document.getElementById("loadingPanel").hidden = true;
