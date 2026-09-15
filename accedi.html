@@ -39,7 +39,10 @@
     <div class="kicker">Accesso effettuato</div>
     <h2 id="accountName" style="font-size:30px">Bentornato</h2>
     <p id="accountEmail" class="section-copy"></p>
-    <div id="verificationNotice" class="notice" style="margin:20px 0" hidden>Email non ancora verificata. Controlla la posta ricevuta da Appwrite.</div>
+    <div id="verificationNotice" class="notice" style="margin:20px 0" hidden>
+  Email non ancora verificata.
+  <button id="resendVerification" class="btn btn-ghost" type="button" style="margin-top:12px">Invia email di verifica</button>
+</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px">
       <a class="btn btn-primary" href="area-professionisti.html#iscrizione">Vai al tuo profilo</a>
       <button id="logoutButton" class="btn btn-ghost" type="button">Esci</button>
@@ -100,6 +103,20 @@ form.addEventListener("submit", async (event) => {
   } finally {
     button.disabled = false;
     button.textContent = "Accedi";
+  }
+});
+
+document.getElementById("resendVerification").addEventListener("click", async () => {
+  const resendButton = document.getElementById("resendVerification");
+  resendButton.disabled = true;
+  resendButton.textContent = "Invio in corso…";
+  try {
+    await account.createVerification({ url: `${location.origin}/verifica-email.html` });
+    resendButton.textContent = "Email inviata";
+  } catch (error) {
+    resendButton.disabled = false;
+    resendButton.textContent = "Riprova";
+    alert(readableError(error));
   }
 });
 
