@@ -134,6 +134,19 @@ async function loadSession() {
 }
 loadSession();
 
+async function createSessionWithRetry(email, password) {
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await account.createEmailPasswordSession({ email, password });
+    } catch (error) {
+      lastError = error;
+      await new Promise(resolve => setTimeout(resolve, 700 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
+
 async function uploadPrivateFile(file, userId) {
   if (!file || !file.size) return null;
   const permissions = [
@@ -168,10 +181,7 @@ form.addEventListener("submit", async event => {
         password,
         name: `${data.get("first_name")} ${data.get("last_name")}`.trim()
       });
-      await account.createEmailPasswordSession({
-        email: String(data.get("email")).trim(),
-        password
-      });
+      await createSessionWithRetry(String(data.get("email")).trim(), password);
       currentUser = await account.get();
     }
 
