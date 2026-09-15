@@ -47,6 +47,7 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 .offer-editor{margin-top:26px;padding-top:24px;border-top:1px solid var(--line)}
 .offer-form-actions{display:flex;gap:10px}
 .offer-state{display:inline-flex;margin-top:9px;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;background:var(--orange-soft);color:var(--orange-dark)}
+.client-request-list{display:grid;gap:14px;margin-top:24px}.client-request-card{border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:17px;padding:19px;background:#fff}.client-request-card h3{margin:0;color:var(--navy)}.request-meta{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.request-meta span{background:var(--soft);border-radius:999px;padding:6px 9px;font-size:12px;font-weight:750}.request-contact{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.request-contact div{background:var(--orange-soft);border-radius:12px;padding:11px;font-size:13px}.response-form{margin-top:17px;padding-top:17px;border-top:1px solid var(--line)}
 @media(max-width:850px){.dashboard-grid{grid-template-columns:1fr}.dashboard-sidebar{position:static}.dashboard-cards{grid-template-columns:1fr}}
 @media(max-width:620px){.detail-grid,.dashboard-media{grid-template-columns:1fr}.dashboard-media img{height:190px}}
 </style>
@@ -156,8 +157,8 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 </div>
 <div id="clientRequestsPanel" class="panel dashboard-view view-ready" data-dashboard-view="requests">
 <div class="kicker">Richieste clienti</div><h2 style="font-size:32px">Viaggiatori compatibili con te</h2>
-<p class="section-copy">Qui compariranno le richieste assegnate in base alle tue destinazioni, specializzazioni e modalità di consulenza.</p>
-<div class="notice" style="margin-top:20px">Il collegamento ad Appwrite è in configurazione.</div>
+<p class="section-copy">Visualizzi esclusivamente le richieste assegnate al tuo account.</p>
+<div id="clientRequestsList" class="client-request-list"><div class="notice">Caricamento delle richieste…</div></div>
 </div>
 <div id="headquartersMessagesPanel" class="panel dashboard-view view-ready" data-dashboard-view="messages">
 <div class="kicker">Comunicazioni</div><h2 style="font-size:32px">Messaggi dalla sede</h2>
@@ -187,6 +188,8 @@ const offersList=document.getElementById("offersList");
 const offerForm=document.getElementById("offerForm");
 const offerMessage=document.getElementById("offerMessage");
 let myOffers=[];
+const clientRequestsList=document.getElementById("clientRequestsList");
+let assignedRequests=[];
 
 function apiHeaders() {
   return {"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"};
@@ -263,7 +266,7 @@ async function loadOwnedProfile(user, application) {
   document.getElementById("publicProfileLink").href="profilo.html?slug="+encodeURIComponent(currentProfile.slug);
   offersManager.hidden=false;
   offersManager.classList.add("view-ready");
-  await loadMyOffers(user.$id);
+  await Promise.all([loadMyOffers(user.$id),loadClientRequests(user.$id)]);
 }
 function renderRequest(row) {
   document.getElementById("loadingPanel").hidden = true;
@@ -317,6 +320,34 @@ try {
   catch (_) { location.replace("accedi.html?redirect=dashboard.html"); }
   document.getElementById("loadingPanel").textContent = readableError(error);
 }
+
+
+async function loadClientRequests(userId){
+ try{
+  const [assignmentResult,requestResult]=await Promise.all([
+   profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.requestAssignmentsTableId+"/rows"),
+   profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.travelRequestsTableId+"/rows")
+  ]);
+  const requests=requestResult.rows||[];
+  assignedRequests=(assignmentResult.rows||[]).filter(row=>row.utente_id===userId).map(assignment=>({assignment,request:requests.find(row=>row.$id===assignment.richiesta_id)})).filter(item=>item.request);
+  renderClientRequests();
+ }catch(error){clientRequestsList.innerHTML='<div class="notice">'+escapeOffer(readableError(error))+'</div>';}
+}
+function renderClientRequests(){
+ clientRequestsList.innerHTML=assignedRequests.length?assignedRequests.map(({assignment,request})=>'<article class="client-request-card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><div class="kicker">'+escapeOffer(request.tipologia_viaggio)+'</div><h3>'+escapeOffer(request.destinazione)+'</h3></div><span class="offer-state">'+escapeOffer(assignment.stato)+'</span></div><div class="request-meta"><span>'+escapeOffer(request.periodo)+'</span><span>'+escapeOffer(request.adulti)+' adulti</span><span>'+escapeOffer(request.bambini||0)+' bambini</span><span>'+escapeOffer(request.budget||"Budget non indicato")+'</span></div><p>'+escapeOffer(request.dettagli||"Nessuna preferenza aggiuntiva.")+'</p><div class="request-contact"><div><strong>'+escapeOffer(request.nome_cliente)+'</strong><br>'+escapeOffer(request.email)+'</div><div><strong>Telefono</strong><br>'+escapeOffer(request.telefono)+'</div></div><form class="response-form form-grid" data-response="'+assignment.$id+'"><div class="form-field"><label>Prima indicazione economica (€)</label><input name="price" type="number" min="0" value="'+escapeOffer(assignment.proposta_economica||"")+'"></div><div class="form-field"><label>Messaggio al cliente</label><textarea name="message" rows="3">'+escapeOffer(assignment.messaggio_professionista||"")+'</textarea></div><button class="btn btn-primary form-field full" type="submit">Salva la risposta</button></form></article>').join(""):'<div class="notice">Non hai ancora ricevuto richieste compatibili.</div>';
+}
+clientRequestsList.addEventListener("submit",async event=>{
+ const form=event.target.closest("[data-response]");if(!form)return;event.preventDefault();
+ const item=assignedRequests.find(entry=>entry.assignment.$id===form.dataset.response);if(!item)return;
+ const data=new FormData(form),button=form.querySelector("button");button.disabled=true;button.textContent="Salvataggio…";
+ try{
+  const update={stato:"risposta",letta:true,messaggio_professionista:String(data.get("message")||"").trim()||null,proposta_economica:Number(data.get("price")||0)||null,data_risposta:new Date().toISOString()};
+  Object.keys(update).forEach(key=>{if(update[key]===null)delete update[key];});
+  await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.requestAssignmentsTableId+"/rows/"+item.assignment.$id,{method:"PATCH",body:{data:update}});
+  Object.assign(item.assignment,update);renderClientRequests();
+ }catch(error){alert(readableError(error));}
+ finally{button.disabled=false;button.textContent="Salva la risposta";}
+});
 
 function offerPermissions(userId,status){
  const permissions=[Permission.read(Role.user(userId)),Permission.update(Role.user(userId)),Permission.delete(Role.user(userId)),Permission.update(Role.label("admin")),Permission.delete(Role.label("admin"))];
