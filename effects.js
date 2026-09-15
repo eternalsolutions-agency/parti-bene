@@ -6,14 +6,8 @@
   }
 
   document.documentElement.classList.add("motion-enabled");
-
-  const revealTargets = document.querySelectorAll(
-    "main section > .container, .card, .path, .panel, .category, .offer-card, .step"
-  );
-  revealTargets.forEach((element, index) => {
-    element.classList.add("reveal-item");
-    element.style.setProperty("--reveal-delay", Math.min(index % 6, 5) * 55 + "ms");
-  });
+  const selector = "main section > .container, .card, .path, .panel, .category, .offer-card, .step";
+  let revealIndex = 0;
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -23,14 +17,27 @@
     });
   }, { threshold: 0.08, rootMargin: "0px 0px -35px" });
 
-  revealTargets.forEach((element) => observer.observe(element));
+  function registerReveal(element) {
+    if (!(element instanceof Element) || element.classList.contains("reveal-item")) return;
+    element.classList.add("reveal-item");
+    element.style.setProperty("--reveal-delay", Math.min(revealIndex++ % 6, 5) * 55 + "ms");
+    observer.observe(element);
+  }
+
+  document.querySelectorAll(selector).forEach(registerReveal);
+  new MutationObserver((mutations) => {
+    mutations.forEach(({ addedNodes }) => addedNodes.forEach((node) => {
+      if (!(node instanceof Element)) return;
+      if (node.matches(selector)) registerReveal(node);
+      node.querySelectorAll?.(selector).forEach(registerReveal);
+    }));
+  }).observe(document.body, { childList: true, subtree: true });
 
   const hero = document.querySelector(".hero");
   if (hero && window.matchMedia("(min-width: 901px)").matches) {
     let ticking = false;
     const updateParallax = () => {
-      const rect = hero.getBoundingClientRect();
-      const shift = Math.max(-35, Math.min(35, -rect.top * 0.08));
+      const shift = Math.max(-35, Math.min(35, -hero.getBoundingClientRect().top * 0.08));
       hero.style.setProperty("--travel-shift", shift + "px");
       ticking = false;
     };
