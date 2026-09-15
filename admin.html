@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Pannello amministrativo Parti Bene.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#062e59">
+<link rel="icon" type="image/png" href="logo-parti-bene.png">
+<link rel="stylesheet" href="styles.css">
+<title>Amministrazione | Parti Bene</title>
+<style>
+.admin-layout{display:grid;grid-template-columns:300px 1fr;gap:22px;align-items:start}
+.admin-list{display:grid;gap:10px;max-height:720px;overflow:auto}
+.admin-item{border:1px solid var(--line);background:#fff;border-radius:15px;padding:15px;text-align:left;cursor:pointer}
+.admin-item.active{border-color:var(--teal);background:#eef9f7}
+.admin-item strong{display:block;color:var(--navy);margin-bottom:5px}.admin-item span{font-size:12px;color:var(--muted)}
+.admin-status{display:inline-flex;border-radius:999px;padding:6px 9px;margin-top:9px;font-size:11px!important;font-weight:900}
+.status-in_attesa{background:#fff4d7;color:#795a12}.status-da_integrare{background:#eaf3ff;color:#275c91}
+.status-approvata{background:#e6f8f4;color:#17705f}.status-rifiutata{background:#fff1ef;color:#913428}
+.admin-details{display:grid;grid-template-columns:1fr 1fr;gap:0 22px;margin:20px 0}
+.admin-detail{border-bottom:1px solid var(--line);padding:12px 0}.admin-detail small{display:block;color:var(--muted);margin-bottom:4px}.admin-detail strong{color:var(--navy)}
+.admin-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.admin-actions .btn-danger{background:#fff1ef;color:#913428;border:1px solid #ffd1ca}
+.admin-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.admin-empty{min-height:240px;display:grid;place-items:center;text-align:center;color:var(--muted)}
+@media(max-width:850px){.admin-layout{grid-template-columns:1fr}.admin-list{max-height:360px}.admin-details{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topbar">Pannello amministrativo · accesso riservato</div>
+<header><div class="container nav">
+<a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
+<nav aria-label="Navigazione amministrativa"><a href="dashboard.html">Dashboard</a><a href="professionisti.html">Professionisti</a><a href="index.html">Sito pubblico</a></nav>
+<div class="actions"><button id="reloadButton" class="btn btn-ghost" type="button">Aggiorna</button><button id="logoutButton" class="btn btn-primary" type="button">Esci</button></div>
+</div></header>
+<main>
+<section class="page-hero"><div class="container"><div class="kicker">Amministrazione</div><h1>Richieste professionisti</h1><p class="hero-copy">Esamina, approva o richiedi integrazioni prima della pubblicazione.</p></div></section>
+<section><div class="container">
+<div id="accessMessage" class="panel admin-empty">Verifica dei permessi amministrativi…</div>
+<div id="adminApp" class="admin-layout" hidden>
+<aside class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px"><h3 style="margin:0;color:var(--navy)">Richieste</h3><span id="requestCount" class="tag">0</span></div><div id="requestList" class="admin-list"></div></aside>
+<div id="detailPanel" class="panel admin-empty">Seleziona una richiesta dall’elenco.</div>
+</div>
+</div></section>
+</main>
+<footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>Operazioni protette da Appwrite</span></div></div></footer>
+<script type="module">
+import { APPWRITE_CONFIG, account, ID, Permission, Role, readableError } from "./appwrite-config.js";
+
+const app = document.getElementById("adminApp");
+const accessMessage = document.getElementById("accessMessage");
+const listElement = document.getElementById("requestList");
+const detailPanel = document.getElementById("detailPanel");
+let requests = [];
+let selectedId = null;
+
+const statusLabels={in_attesa:"In attesa",da_integrare:"Da integrare",approvata:"Approvata",rifiutata:"Rifiutata"};
+const modeLabels={in_sede:"In sede",online:"Online",su_appuntamento:"Su appuntamento",mista:"Mista"};
+const headers=()=>({
+  "Content-Type":"application/json",
+  "X-Appwrite-Project":APPWRITE_CONFIG.projectId,
+  "X-Appwrite-Response-Format":"1.8.0"
+});
+
+function escapeHtml(value=""){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]));}
+function slugify(value){return String(value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,120)||"professionista";}
+async function api(path,{method="GET",body}={}){
+ const response=await fetch(APPWRITE_CONFIG.endpoint+path,{method,credentials:"include",headers:headers(),body:body?JSON.stringify(body):undefined});
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok){const error=new Error(result.message||"Operazione non riuscita.");error.code=response.status;error.type=result.type;throw error;}
+ return result;
+}
+function tags(values){return (Array.isArray(values)&&values.length)?values.map(value=>'<span class="tag">'+escapeHtml(value)+'</span>').join(""):'<span class="meta">Non indicate</span>';}
+function detailsRow(label,value){return '<div class="admin-detail"><small>'+label+'</small><strong>'+escapeHtml(value||"Non indicato")+'</strong></div>';}
+
+async function loadRequests(){
+ const result=await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.applicationsTableId+"/rows");
+ requests=(result.rows||[]).sort((a,b)=>new Date(b.$createdAt)-new Date(a.$createdAt));
+ document.getElementById("requestCount").textContent=requests.length;
+ renderList();
+ if(selectedId){
+   const current=requests.find(row=>row.$id===selectedId);
+   if(current) renderDetail(current);
+ }
+}
+function renderList(){
+ listElement.innerHTML=requests.length?requests.map(row=>
+  '<button class="admin-item '+(row.$id===selectedId?"active":"")+'" data-id="'+row.$id+'">'+
+  '<strong>'+escapeHtml(row.nome_attivita)+'</strong><span>'+escapeHtml(row.email)+'</span>'+
+  '<span class="admin-status status-'+escapeHtml(row.stato)+'">'+escapeHtml(statusLabels[row.stato]||row.stato)+'</span></button>'
+ ).join(""):'<div class="meta">Nessuna richiesta presente.</div>';
+}
+function renderDetail(row){
+ selectedId=row.$id;renderList();
+ detailPanel.className="panel";detailPanel.innerHTML=
+ '<div style="display:flex;justify-content:space-between;gap:15px;align-items:start;flex-wrap:wrap"><div><div class="kicker">Richiesta</div><h2 style="font-size:32px">'+escapeHtml(row.nome_attivita)+'</h2></div><span class="admin-status status-'+escapeHtml(row.stato)+'">'+escapeHtml(statusLabels[row.stato]||row.stato)+'</span></div>'+
+ '<div class="admin-details">'+
+ detailsRow("Tipologia",row.tipologia==="agenzia"?"Agenzia di viaggio":"Consulente di viaggio")+
+ detailsRow("Referente",[row.nome_referente,row.cognome_referente].filter(Boolean).join(" "))+
+ detailsRow("Email",row.email)+detailsRow("Telefono",row.telefono)+detailsRow("Partita IVA",row.partita_iva)+
+ detailsRow("Località",[row.comune,row.provincia].filter(Boolean).join(" · "))+detailsRow("Indirizzo",row.indirizzo)+
+ detailsRow("Modalità",modeLabels[row.modalita_consulenza]||row.modalita_consulenza)+
+ '</div>'+
+ '<h3 style="color:var(--navy)">Specializzazioni</h3><div class="admin-tags">'+tags(row.specializzazioni)+'</div>'+
+ '<h3 style="color:var(--navy);margin-top:22px">Destinazioni</h3><div class="admin-tags">'+tags(row.destinazioni)+'</div>'+
+ '<h3 style="color:var(--navy);margin-top:22px">Presentazione</h3><p class="section-copy">'+escapeHtml(row.presentazione)+'</p>'+
+ '<div class="form-field full" style="margin-top:22px"><label for="adminNotes">Note amministratore</label><textarea id="adminNotes" rows="3" placeholder="Motivo della richiesta di integrazione o del rifiuto">'+escapeHtml(row.note_amministratore||"")+'</textarea></div>'+
+ '<div id="actionMessage" class="notice" style="display:none;margin-top:16px"></div>'+
+ '<div class="admin-actions"><button class="btn btn-primary" data-action="approve">Approva e pubblica</button><button class="btn btn-ghost" data-action="integrate">Richiedi integrazioni</button><button class="btn btn-danger" data-action="reject">Rifiuta</button></div>';
+}
+async function updateRequest(row,status,notes){
+ return api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.applicationsTableId+"/rows/"+row.$id,{
+  method:"PATCH",body:{data:{stato:status,note_amministratore:notes||null}}
+ });
+}
+async function approve(row,notes){
+ const professionalData={
+  nome:row.nome_attivita,tipologia:row.tipologia,
+  slug:slugify(row.nome_attivita)+"-"+row.$id.slice(-6),
+  descrizione:row.presentazione,email:row.email,telefono:row.telefono,whatsapp:row.telefono,
+  indirizzo:row.indirizzo,comune:row.comune,provincia:row.provincia,
+  disponibile_online:["online","mista"].includes(row.modalita_consulenza),
+  specializzazioni:row.specializzazioni||[],destinazioni:row.destinazioni||[],
+  logo_file_id:row.logo_file_id,copertina_file_id:row.copertina_file_id,
+  proprietario_user_id:row.utente_id,profilo_rivendicato:true,profilo_verificato:false,
+  stato:"pubblicato",data_approvazione:new Date().toISOString()
+ };
+ Object.keys(professionalData).forEach(key=>{if(professionalData[key]===null||professionalData[key]===undefined||professionalData[key]==="")delete professionalData[key];});
+ await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows",{
+  method:"POST",
+  body:{rowId:ID.unique(),data:professionalData,permissions:[Permission.read(Role.guests()),Permission.read(Role.users())]}
+ });
+ await updateRequest(row,"approvata",notes);
+}
+listElement.addEventListener("click",event=>{const button=event.target.closest("[data-id]");if(button){const row=requests.find(item=>item.$id===button.dataset.id);if(row)renderDetail(row);}});
+detailPanel.addEventListener("click",async event=>{
+ const button=event.target.closest("[data-action]");if(!button)return;
+ const row=requests.find(item=>item.$id===selectedId);if(!row)return;
+ const notes=document.getElementById("adminNotes").value.trim();
+ const message=document.getElementById("actionMessage");
+ button.disabled=true;message.style.display="block";message.textContent="Operazione in corso…";
+ try{
+  if(button.dataset.action==="approve")await approve(row,notes);
+  if(button.dataset.action==="integrate")await updateRequest(row,"da_integrare",notes);
+  if(button.dataset.action==="reject")await updateRequest(row,"rifiutata",notes);
+  message.textContent="Operazione completata correttamente.";
+  await loadRequests();
+ }catch(error){message.textContent=readableError(error);message.style.background="#fff1ef";message.style.borderColor="#ffd1ca";message.style.color="#913428";}
+ finally{button.disabled=false;}
+});
+document.getElementById("reloadButton").addEventListener("click",loadRequests);
+document.getElementById("logoutButton").addEventListener("click",async()=>{await account.deleteSession({sessionId:"current"});location.replace("index.html");});
+
+try{
+ const user=await account.get();
+ if(!(user.labels||[]).includes("admin"))throw new Error("Il tuo account non dispone del ruolo amministratore.");
+ accessMessage.hidden=true;app.hidden=false;await loadRequests();
+}catch(error){
+ accessMessage.textContent=readableError(error);
+ if(error.code===401)setTimeout(()=>location.replace("accedi.html?redirect=admin.html"),1000);
+}
+</script>
+</body></html>
