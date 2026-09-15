@@ -117,18 +117,16 @@ async function approve(row,notes){
  const professionalData={
   nome:row.nome_attivita,tipologia:row.tipologia,
   slug:slugify(row.nome_attivita)+"-"+row.$id.slice(-6),
-  descrizione:row.presentazione,email:row.email,telefono:row.telefono,whatsapp:row.telefono,
-  indirizzo:row.indirizzo,comune:row.comune,provincia:row.provincia,
+  descrizione:row.presentazione,comune:row.comune,provincia:row.provincia,
   disponibile_online:["online","mista"].includes(row.modalita_consulenza),
   specializzazioni:row.specializzazioni||[],destinazioni:row.destinazioni||[],
-  logo_file_id:row.logo_file_id,copertina_file_id:row.copertina_file_id,
-  proprietario_user_id:row.utente_id,profilo_rivendicato:true,profilo_verificato:false,
+  profilo_rivendicato:true,profilo_verificato:false,
   stato:"pubblicato",data_approvazione:new Date().toISOString()
  };
  Object.keys(professionalData).forEach(key=>{if(professionalData[key]===null||professionalData[key]===undefined||professionalData[key]==="")delete professionalData[key];});
  await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows",{
   method:"POST",
-  body:{rowId:ID.unique(),data:professionalData,permissions:[Permission.read(Role.guests()),Permission.read(Role.users())]}
+  body:{rowId:ID.unique(),data:professionalData,permissions:[Permission.read(Role.any())]}
  });
  await updateRequest(row,"approvata",notes);
 }
