@@ -147,6 +147,36 @@ async function createSessionWithRetry(email, password) {
   throw lastError;
 }
 
+async function createApplicationRow(data, permissions) {
+  const response = await fetch(
+    APPWRITE_CONFIG.endpoint + "/tablesdb/" + APPWRITE_CONFIG.databaseId +
+    "/tables/" + APPWRITE_CONFIG.applicationsTableId + "/rows",
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Appwrite-Project": APPWRITE_CONFIG.projectId,
+        "X-Appwrite-Response-Format": "1.8.0"
+      },
+      body: JSON.stringify({
+        rowId: ID.unique(),
+        data,
+        permissions
+      })
+    }
+  );
+
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(result.message || "Appwrite ha rifiutato il salvataggio della richiesta.");
+    error.code = response.status;
+    error.type = result.type;
+    throw error;
+  }
+  return result;
+}
+
 async function uploadPrivateFile(file, userId) {
   if (!file || !file.size) return null;
   const permissions = [
@@ -192,36 +222,32 @@ form.addEventListener("submit", async event => {
     const logoId = await uploadPrivateFile(data.get("logo"), currentUser.$id);
     const coverId = await uploadPrivateFile(data.get("cover"), currentUser.$id);
 
-    await tablesDB.createRow({
-      databaseId: APPWRITE_CONFIG.databaseId,
-      tableId: APPWRITE_CONFIG.applicationsTableId,
-      rowId: ID.unique(),
-      data: {
-        utente_id: currentUser.$id,
-        tipologia: data.get("professional_type") === "consultant" ? "consulente" : "agenzia",
-        nome_referente: String(data.get("first_name")).trim(),
-        cognome_referente: String(data.get("last_name")).trim(),
-        nome_attivita: String(data.get("business_name")).trim(),
-        email: currentUser.email,
-        telefono: String(data.get("phone")).trim(),
-        partita_iva: String(data.get("vat") || "").trim() || null,
-        indirizzo: data.get("professional_type") === "consultant" ? null : String(data.get("address") || "").trim() || null,
-        comune: String(data.get("city") || "").trim() || null,
-        provincia: String(data.get("province") || "").trim().toUpperCase() || null,
-        modalita_consulenza: modalita,
-        specializzazioni: data.getAll("specialization"),
-        destinazioni: String(data.get("destinations") || "").split(",").map(value => value.trim()).filter(Boolean),
-        presentazione: String(data.get("bio")).trim(),
-        logo_file_id: logoId,
-        copertina_file_id: coverId,
-        stato: "in_attesa",
-        privacy_accettata: Boolean(data.get("privacy"))
-      },
-      permissions: [
-        Permission.read(Role.user(currentUser.$id)),
-        Permission.update(Role.user(currentUser.$id))
-      ]
-    });
+    const applicationData = {
+      utente_id: currentUser.$id,
+      tipologia: data.get("professional_type") === "consultant" ? "consulente" : "agenzia",
+      nome_referente: String(data.get("first_name")).trim(),
+      cognome_referente: String(data.get("last_name")).trim(),
+      nome_attivita: String(data.get("business_name")).trim(),
+      email: currentUser.email,
+      telefono: String(data.get("phone")).trim(),
+      partita_iva: String(data.get("vat") || "").trim() || null,
+      indirizzo: data.get("professional_type") === "consultant" ? null : String(data.get("address") || "").trim() || null,
+      comune: String(data.get("city") || "").trim() || null,
+      provincia: String(data.get("province") || "").trim().toUpperCase() || null,
+      modalita_consulenza: modalita,
+      specializzazioni: data.getAll("specialization"),
+      destinazioni: String(data.get("destinations") || "").split(",").map(value => value.trim()).filter(Boolean),
+      presentazione: String(data.get("bio")).trim(),
+      logo_file_id: logoId,
+      copertina_file_id: coverId,
+      stato: "in_attesa",
+      privacy_accettata: Boolean(data.get("privacy"))
+    };
+
+    await createApplicationRow(applicationData, [
+      Permission.read(Role.user(currentUser.$id)),
+      Permission.update(Role.user(currentUser.$id))
+    ]);
 
     if (!currentUser.emailVerification) {
       try {
