@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Iscrivi gratuitamente la tua agenzia di viaggio su Parti Bene.">
+<meta name="theme-color" content="#062e59">
+<link rel="icon" type="image/png" href="logo-parti-bene.png">
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="claims.css"><link rel="stylesheet" href="registration.css">
+<title>Iscrizione agenzia di viaggio | Parti Bene</title>
+<script src="effects.js" defer></script>
+</head>
+<body data-professional-type="agency">
+<div class="topbar">Iscrizione gratuita per agenzie di viaggio</div>
+<header><div class="container nav">
+<a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
+<nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a><a href="sei-un-agenzia.html">Sei un’agenzia?</a><a href="sei-un-consulente.html">Sei un consulente?</a></nav>
+<div class="actions"><a class="btn btn-ghost" href="accedi.html">Accedi</a><a class="btn btn-primary" href="#iscrizione">Iscriviti gratis</a></div>
+</div></header>
+<main>
+<section class="page-hero"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a> / <a href="area-professionisti.html">Area professionisti</a> / Agenzie</div><div class="kicker">Parti Bene per le agenzie</div><h1>Porta la tua agenzia davanti a nuovi viaggiatori</h1><p class="hero-copy">Crea una vetrina professionale, valorizza le tue specializzazioni e fatti trovare dagli utenti della tua zona o interessati alle mete che tratti.</p><a class="btn btn-primary" href="#iscrizione">Iscrivi gratuitamente l’agenzia</a></div></section>
+<section><div class="container paths">
+<article class="path"><div class="path-content"><div class="kicker">Gratuito</div><h3>Presenta la tua attività</h3><p>Profilo, sede o operatività online, contatti, mete e specializzazioni.</p></div></article>
+<article class="path"><div class="path-content"><div class="kicker">Opportunità</div><h3>Ricevi nuove richieste</h3><p>Fatti trovare da utenti interessati alle destinazioni e ai servizi che offri.</p></div></article>
+<article class="path"><div class="path-content"><div class="kicker">Sei già presente?</div><h3>Rivendica la scheda</h3><p>Verifica gratuitamente la proprietà di un profilo già pubblicato.</p><a class="text-link" href="rivendica-profilo.html">Rivendica il profilo →</a></div></article>
+</div></section>
+<section id="iscrizione" class="professionals"><div class="container profile-layout">
+<div class="panel">
+<div class="kicker">Iscrizione gratuita</div><h2>Crea il profilo dell’agenzia</h2><p class="section-copy">Inserisci le informazioni necessarie. Prima della pubblicazione il profilo sarà controllato da Parti Bene.</p>
+<div class="form-progress" aria-label="Avanzamento"><span class="active"></span><span class="active"></span><span class="active"></span></div>
+<form id="professionalForm" class="form-grid">
+<input type="hidden" name="professional_type" value="agency">
+<div class="form-field full"><div class="notice"><strong>Iscrizione agenzia di viaggio</strong><br>Il modulo è già configurato per un’agenzia con sede fisica, online oppure mista.</div></div>
+<div class="form-section form-field full"><h3>Dati di accesso</h3><p>Serviranno per entrare nella futura area riservata.</p></div>
+<div class="form-field"><label>Nome *</label><input name="first_name" required autocomplete="given-name"></div>
+<div class="form-field"><label>Cognome *</label><input name="last_name" required autocomplete="family-name"></div>
+<div class="form-field"><label>Email *</label><input name="email" type="email" required autocomplete="email"></div>
+<div class="form-field"><label>Telefono *</label><input name="phone" type="tel" required autocomplete="tel"></div>
+<div id="accessFields" class="form-field full" style="display:contents">
+  <div class="form-field"><label>Password *</label><input id="registerPassword" name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="Almeno 8 caratteri"></div>
+  <div class="form-field"><label>Conferma password *</label><input id="confirmPassword" name="confirm_password" type="password" minlength="8" required autocomplete="new-password"></div>
+</div>
+<div class="form-section form-field full"><h3>Attività professionale</h3><p>Questi dati permettono di identificare e verificare correttamente il profilo.</p></div>
+<div class="form-field full"><label id="businessLabel">Nome dell’agenzia *</label><input name="business_name" required placeholder="Nome mostrato nel portale"></div>
+<div class="form-field"><label>Partita IVA *</label><input name="vat" required inputmode="numeric"></div>
+<div class="form-field"><label>Sito web</label><input name="website" type="url" placeholder="https://"></div>
+<div class="form-field"><label>Città *</label><input name="city" required></div>
+<div class="form-field"><label>Provincia *</label><input name="province" required maxlength="2" placeholder="RM"></div>
+<div class="form-field full" id="addressField"><label>Indirizzo della sede</label><input name="address" autocomplete="street-address"><small class="meta">Potrai scegliere successivamente se mostrarlo pubblicamente.</small></div>
+<div class="form-field full"><label>Modalità di consulenza *</label><div class="check-grid"><label class="check-card"><input type="checkbox" name="mode" value="office"> In sede</label><label class="check-card"><input type="checkbox" name="mode" value="online"> Online</label><label class="check-card"><input type="checkbox" name="mode" value="appointment"> Su appuntamento</label></div></div>
+<div class="form-section form-field full"><h3>Specializzazioni</h3><p>Seleziona le aree principali: potranno essere ampliate dall’area riservata.</p></div>
+<div class="form-field full"><div class="check-grid">
+<label class="check-card"><input type="checkbox" name="specialization" value="honeymoon"> Viaggi di nozze</label>
+<label class="check-card"><input type="checkbox" name="specialization" value="cruise"> Crociere</label>
+<label class="check-card"><input type="checkbox" name="specialization" value="family"> Famiglie</label>
+<label class="check-card"><input type="checkbox" name="specialization" value="groups"> Viaggi di gruppo</label>
+<label class="check-card"><input type="checkbox" name="specialization" value="custom"> Su misura</label>
+<label class="check-card"><input type="checkbox" name="specialization" value="accessible"> Turismo accessibile</label>
+</div></div>
+<div class="form-field full"><label>Destinazioni principali</label><input name="destinations" placeholder="Es. Giappone, Maldive, Stati Uniti"></div>
+<div class="form-field full"><label>Presentazione professionale *</label><textarea name="bio" required rows="5" placeholder="Descrivi esperienza, metodo di lavoro e tipo di assistenza offerta"></textarea></div>
+<div class="form-section form-field full"><h3>Immagini del profilo</h3><p>Carica immagini autentiche e autorizzate. Saranno pubblicate soltanto dopo l'approvazione del profilo.</p></div>
+<div class="form-field"><label class="upload-field">Logo o foto profilo<input name="logo" type="file" accept="image/png,image/jpeg,image/webp"><small>PNG, JPG o WebP · massimo 10 MB</small></label></div>
+<div class="form-field"><label class="upload-field">Immagine di copertina<input name="cover" type="file" accept="image/png,image/jpeg,image/webp"><small>Formato orizzontale consigliato · massimo 10 MB</small></label></div>
+<label class="consent-line form-field full"><input type="checkbox" required><span>Dichiaro che le informazioni inserite sono corrette e che sono autorizzato a rappresentare l’attività.</span></label>
+<label class="consent-line form-field full"><input name="privacy" type="checkbox" required><span>Ho letto l’informativa privacy e acconsento al trattamento dei dati per la gestione della richiesta.</span></label>
+<button class="btn btn-primary form-field full" type="submit">Invia l’iscrizione dell’agenzia</button>
+</form>
+<div id="formMessage" class="notice form-message" role="status" aria-live="polite">Compila il modulo per inviare la richiesta. Il profilo sarà pubblicato soltanto dopo la verifica.</div>
+</div>
+<aside class="panel signup-aside"><div class="kicker">Il profilo gratuito include</div><h3>Inizia senza costi</h3><div class="benefit-list">
+<div class="benefit"><b>✓</b><div><strong>Profilo pubblico</strong><span>Presentazione, contatti e modalità di consulenza.</span></div></div>
+<div class="benefit"><b>✓</b><div><strong>Specializzazioni</strong><span>Mete e tipologie di viaggio trattate.</span></div></div>
+<div class="benefit"><b>✓</b><div><strong>Presenza nella ricerca</strong><span>Per località, destinazione e competenza.</span></div></div>
+<div class="benefit"><b>✓</b><div><strong>Richieste di contatto</strong><span>Quando la funzione sarà operativa.</span></div></div>
+</div><div class="notice">Ogni nuovo profilo partirà con lo stato <strong>“In attesa di approvazione”</strong>.</div><a class="btn btn-ghost" href="rivendica-profilo.html" style="width:100%;margin-top:14px">Hai già trovato la tua scheda?</a></aside>
+</div></section>
+</main>
+<footer><div class="container"><div class="footer-grid">
+<div><div class="footer-logo-wrap"><img class="footer-logo" src="logo-parti-bene.png" alt="Parti Bene"></div><p style="max-width:330px;line-height:1.6;font-size:13px">Il portale italiano che mette in contatto viaggiatori, agenzie e consulenti di viaggio.</p></div>
+<div><h4>Esplora</h4><a href="professionisti.html">Professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a></div>
+<div><h4>Professionisti</h4><a href="sei-un-agenzia.html">Iscrivi la tua agenzia</a><a href="sei-un-consulente.html">Iscriviti come consulente</a><a href="rivendica-profilo.html">Rivendica un profilo</a><a href="area-professionisti.html">Crea il profilo</a></div>
+<div><h4>Informazioni</h4><a href="chi-siamo.html">Chi siamo</a><a href="contatti.html">Contatti</a><a href="privacy.html">Privacy</a></div>
+</div><div class="legal"><span>© 2026 Parti Bene.</span><span>Registrazioni soggette ad approvazione</span></div></div></footer>
+<script type="module">
+import {
+  APPWRITE_CONFIG,
+  account,
+  tablesDB,
+  storage,
+  ID,
+  Permission,
+  Role,
+  readableError
+} from "./appwrite-config.js";
+
+const agency = document.getElementById("typeAgency");
+const consultant = document.getElementById("typeConsultant");
+const businessLabel = document.getElementById("businessLabel");
+const address = document.getElementById("addressField");
+const form = document.getElementById("professionalForm");
+const message = document.getElementById("formMessage");
+const submitButton = form.querySelector('button[type="submit"]');
+let currentUser = null;
+
+function updateType() {
+  const isConsultant = document.body.dataset.professionalType === "consultant" || Boolean(consultant?.checked);
+  businessLabel.textContent = isConsultant ? "Nome professionale o attività *" : "Nome dell’agenzia *";
+  address.style.display = isConsultant ? "none" : "grid";
+}
+agency?.addEventListener("change", updateType);
+consultant?.addEventListener("change", updateType);
+updateType();
+
+function showMessage(text, isError = false) {
+  message.classList.add("is-visible");
+  message.textContent = text;
+  message.style.background = isError ? "#fff1ef" : "";
+  message.style.borderColor = isError ? "#ffd1ca" : "";
+  message.style.color = isError ? "#8f3327" : "";
+  message.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+async function loadSession() {
+  try {
+    currentUser = await account.get();
+    const accessFields = document.getElementById("accessFields");
+    accessFields.style.display = "none";
+    accessFields.querySelectorAll("input").forEach(input => input.required = false);
+    form.elements.email.value = currentUser.email;
+    form.elements.email.readOnly = true;
+  } catch (_) {
+    currentUser = null;
+  }
+}
+loadSession();
+
+async function createSessionWithRetry(email, password) {
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await account.createEmailPasswordSession({ email, password });
+    } catch (error) {
+      lastError = error;
+      await new Promise(resolve => setTimeout(resolve, 700 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
+
+async function createApplicationRow(data, permissions) {
+  const response = await fetch(
+    APPWRITE_CONFIG.endpoint + "/tablesdb/" + APPWRITE_CONFIG.databaseId +
+    "/tables/" + APPWRITE_CONFIG.applicationsTableId + "/rows",
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Appwrite-Project": APPWRITE_CONFIG.projectId,
+        "X-Appwrite-Response-Format": "1.8.0"
+      },
+      body: JSON.stringify({
+        rowId: ID.unique(),
+        data,
+        permissions
+      })
+    }
+  );
+
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(result.message || "Appwrite ha rifiutato il salvataggio della richiesta.");
+    error.code = response.status;
+    error.type = result.type;
+    throw error;
+  }
+  return result;
+}
+
+async function uploadPrivateFile(file, userId) {
+  if (!file || !file.size) return null;
+  const permissions = [
+    Permission.read(Role.user(userId)),
+    Permission.update(Role.user(userId)),
+    Permission.delete(Role.user(userId))
+  ];
+  const uploaded = await storage.createFile({
+    bucketId: APPWRITE_CONFIG.mediaBucketId,
+    fileId: ID.unique(),
+    file,
+    permissions
+  });
+  return uploaded.$id;
+}
+
+form.addEventListener("submit", async event => {
+  event.preventDefault();
+  submitButton.disabled = true;
+  submitButton.textContent = "Invio in corso…";
+
+  try {
+    const data = new FormData(form);
+    const password = String(data.get("password") || "");
+    const confirmation = String(data.get("confirm_password") || "");
+
+    if (!currentUser) {
+      if (password !== confirmation) throw new Error("Le due password non coincidono.");
+      await account.create({
+        userId: ID.unique(),
+        email: String(data.get("email")).trim(),
+        password,
+        name: `${data.get("first_name")} ${data.get("last_name")}`.trim()
+      });
+      await createSessionWithRetry(String(data.get("email")).trim(), password);
+      currentUser = await account.get();
+    }
+
+    const modes = data.getAll("mode");
+    if (!modes.length) throw new Error("Seleziona almeno una modalità di consulenza.");
+    const modeMap = { office: "in_sede", online: "online", appointment: "su_appuntamento" };
+    const modalita = modes.length > 1 ? "mista" : modeMap[modes[0]];
+    const logoId = await uploadPrivateFile(data.get("logo"), currentUser.$id);
+    const coverId = await uploadPrivateFile(data.get("cover"), currentUser.$id);
+
+    const applicationData = {
+      utente_id: currentUser.$id,
+      tipologia: data.get("professional_type") === "consultant" ? "consulente" : "agenzia",
+      nome_referente: String(data.get("first_name")).trim(),
+      cognome_referente: String(data.get("last_name")).trim(),
+      nome_attivita: String(data.get("business_name")).trim(),
+      email: currentUser.email,
+      telefono: String(data.get("phone")).trim(),
+      partita_iva: String(data.get("vat") || "").trim() || null,
+      indirizzo: data.get("professional_type") === "consultant" ? null : String(data.get("address") || "").trim() || null,
+      comune: String(data.get("city") || "").trim() || null,
+      provincia: String(data.get("province") || "").trim().toUpperCase() || null,
+      modalita_consulenza: modalita,
+      specializzazioni: data.getAll("specialization"),
+      destinazioni: String(data.get("destinations") || "").split(",").map(value => value.trim()).filter(Boolean),
+      presentazione: String(data.get("bio")).trim(),
+      logo_file_id: logoId,
+      copertina_file_id: coverId,
+      stato: "in_attesa",
+      privacy_accettata: Boolean(data.get("privacy"))
+    };
+
+    await createApplicationRow(applicationData, [
+      Permission.read(Role.user(currentUser.$id)),
+      Permission.update(Role.user(currentUser.$id))
+    ]);
+
+    if (!currentUser.emailVerification) {
+      try {
+        await account.createVerification({ url: `${location.origin}/verifica-email.html` });
+      } catch (_) {}
+    }
+
+    form.reset();
+    updateType();
+    showMessage("Richiesta inviata correttamente. Controlla la tua email per verificare l’account; il profilo resterà in attesa fino al controllo di Parti Bene.");
+  } catch (error) {
+    showMessage(readableError(error), true);
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Invia l’iscrizione dell’agenzia";
+  }
+});
+</script>
+</body></html>
