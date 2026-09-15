@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" fill="none">
+  <g stroke="#0b4677" stroke-width="4" stroke-linejoin="round" opacity=".92">
+    <path fill="#18bfa5" fill-opacity=".18" d="M84 154l43-55 80-30 67 12 39 39 55 17 19 45-34 30-42-10-24 30-53 13-32 54-38-8-14-54-38-24-28-59z"/>
+    <path fill="#18bfa5" fill-opacity=".18" d="M285 308l47 18 31 46-8 58-31 58-18 67-29-24-12-70-32-52 13-58 39-43z"/>
+    <path fill="#ff8a3d" fill-opacity=".15" d="M492 125l48-31 68 8 34 31 43-8 49 25 67-9 64 30 79-6 63 35-24 40-71 12-42 38-67-12-45 25-50-14-35-47-58-7-28-45-51-14-18-51z"/>
+    <path fill="#18bfa5" fill-opacity=".18" d="M559 273l65 7 42 46 20 65-27 79-48 50-41-19-13-63-35-53 15-64 22-48z"/>
+    <path fill="#ff8a3d" fill-opacity=".15" d="M921 391l54-35 67 11 47 43-20 45-70 19-57-20-21-63z"/>
+    <path fill="#18bfa5" fill-opacity=".15" d="M1050 248l24-20 30 9 10 27-24 20-31-9-9-27z"/>
+  </g>
+  <g fill="#ff8a3d">
+    <circle cx="248" cy="178" r="7"/><circle cx="526" cy="166" r="7"/><circle cx="741" cy="220" r="7"/><circle cx="982" cy="404" r="7"/>
+  </g>
+  <g stroke="#ff8a3d" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 12" opacity=".72">
+    <path d="M248 178C390 68 520 89 526 166"/><path d="M526 166c72-42 151-29 215 54"/><path d="M741 220c109 42 180 93 241 184"/>
+  </g>
+</svg>
