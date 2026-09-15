@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Accesso riservato ai professionisti iscritti a Parti Bene.">
+  <meta name="description" content="Accedi all'area riservata di Parti Bene.">
   <meta name="theme-color" content="#062e59">
   <link rel="icon" type="image/png" href="logo-parti-bene.png">
   <link rel="stylesheet" href="styles.css">
@@ -16,16 +16,96 @@
     <a href="professionisti.html">Trova professionisti</a>
     <a href="offerte.html">Offerte</a>
     <a href="come-funziona.html">Come funziona</a>
-    <a href="area-professionisti.html">Sei un'agenzia?</a>
+    <a href="area-professionisti.html">Sei un professionista?</a>
   </nav>
-  <div class="actions"><a class="btn btn-ghost" href="accedi.html">Accedi</a><a class="btn btn-primary" href="area-professionisti.html">Iscriviti gratis</a></div>
+  <div class="actions"><a class="btn btn-ghost" href="accedi.html">Accedi</a><a class="btn btn-primary" href="area-professionisti.html#iscrizione">Iscriviti gratis</a></div>
 </div></header>
 
-<main><section class="page-hero"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a> / Accedi</div><h1>Area riservata</h1><p class="hero-copy">L'accesso sarà disponibile per agenzie e consulenti dopo il collegamento di Supabase.</p></div></section><section><div class="container" style="max-width:540px"><form class="panel form-grid" onsubmit="event.preventDefault();alert('Accesso in preparazione.')"><div class="form-field full"><label>Email</label><input type="email" disabled placeholder="nome@agenzia.it"></div><div class="form-field full"><label>Password</label><input type="password" disabled placeholder="••••••••"></div><button class="btn btn-dark form-field full" disabled>Accedi</button><div class="notice form-field full">Autenticazione non ancora attiva: nessuna credenziale viene raccolta.</div></form></div></section></main>
+<main>
+<section class="page-hero"><div class="container">
+  <div class="breadcrumbs"><a href="index.html">Home</a> / Accedi</div>
+  <h1>Area riservata</h1>
+  <p class="hero-copy">Accedi per seguire la tua richiesta e gestire il profilo professionale.</p>
+</div></section>
+<section><div class="container" style="max-width:560px">
+  <form id="loginForm" class="panel form-grid">
+    <div class="form-field full"><label for="loginEmail">Email</label><input id="loginEmail" name="email" type="email" required autocomplete="email" placeholder="nome@agenzia.it"></div>
+    <div class="form-field full"><label for="loginPassword">Password</label><input id="loginPassword" name="password" type="password" minlength="8" required autocomplete="current-password" placeholder="Almeno 8 caratteri"></div>
+    <button id="loginButton" class="btn btn-dark form-field full" type="submit">Accedi</button>
+    <div id="loginMessage" class="notice form-field full" role="status" aria-live="polite" hidden></div>
+    <p class="form-field full" style="text-align:center;color:var(--muted);margin:4px 0 0">Non hai ancora un account? <a class="text-link" href="area-professionisti.html#iscrizione">Iscriviti gratuitamente</a></p>
+  </form>
+  <div id="accountPanel" class="panel" hidden>
+    <div class="kicker">Accesso effettuato</div>
+    <h2 id="accountName" style="font-size:30px">Bentornato</h2>
+    <p id="accountEmail" class="section-copy"></p>
+    <div id="verificationNotice" class="notice" style="margin:20px 0" hidden>Email non ancora verificata. Controlla la posta ricevuta da Appwrite.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px">
+      <a class="btn btn-primary" href="area-professionisti.html#iscrizione">Vai al tuo profilo</a>
+      <button id="logoutButton" class="btn btn-ghost" type="button">Esci</button>
+    </div>
+  </div>
+</div></section>
+</main>
+
 <footer><div class="container"><div class="footer-grid">
   <div><div class="footer-logo-wrap"><img class="footer-logo" src="logo-parti-bene.png" alt="Parti Bene"></div><p style="max-width:330px;line-height:1.6;font-size:13px">Il portale italiano che mette in contatto viaggiatori, agenzie e consulenti di viaggio.</p></div>
   <div><h4>Esplora</h4><a href="professionisti.html">Professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a></div>
-  <div><h4>Professionisti</h4><a href="area-professionisti.html">Iscriviti gratis</a><a href="area-professionisti.html">Pubblica offerte</a><a href="area-professionisti.html">Piano Premium</a></div>
+  <div><h4>Professionisti</h4><a href="area-professionisti.html">Iscriviti gratis</a><a href="rivendica-profilo.html">Rivendica un profilo</a></div>
   <div><h4>Informazioni</h4><a href="chi-siamo.html">Chi siamo</a><a href="contatti.html">Contatti</a><a href="privacy.html">Privacy</a></div>
-</div><div class="legal"><span>© 2026 Parti Bene.</span><span>Fotografie: Unsplash</span></div></div></footer>
+</div><div class="legal"><span>© 2026 Parti Bene.</span><span>Accesso protetto da Appwrite</span></div></div></footer>
+
+<script type="module">
+import { account, readableError } from "./appwrite-config.js";
+
+const form = document.getElementById("loginForm");
+const message = document.getElementById("loginMessage");
+const accountPanel = document.getElementById("accountPanel");
+const button = document.getElementById("loginButton");
+
+function showMessage(text, isError = false) {
+  message.hidden = false;
+  message.textContent = text;
+  message.style.background = isError ? "#fff1ef" : "";
+  message.style.borderColor = isError ? "#ffd1ca" : "";
+  message.style.color = isError ? "#8f3327" : "";
+}
+
+function showAccount(user) {
+  form.hidden = true;
+  accountPanel.hidden = false;
+  document.getElementById("accountName").textContent = user.name ? `Bentornato, ${user.name}` : "Bentornato";
+  document.getElementById("accountEmail").textContent = user.email;
+  document.getElementById("verificationNotice").hidden = Boolean(user.emailVerification);
+}
+
+try {
+  showAccount(await account.get());
+} catch (_) {}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  button.disabled = true;
+  button.textContent = "Accesso in corso…";
+  message.hidden = true;
+  try {
+    const data = new FormData(form);
+    await account.createEmailPasswordSession({
+      email: data.get("email").trim(),
+      password: data.get("password")
+    });
+    showAccount(await account.get());
+  } catch (error) {
+    showMessage(readableError(error), true);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Accedi";
+  }
+});
+
+document.getElementById("logoutButton").addEventListener("click", async () => {
+  await account.deleteSession({ sessionId: "current" });
+  location.reload();
+});
+</script>
 </body></html>
