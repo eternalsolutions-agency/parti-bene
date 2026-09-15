@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Dashboard professionisti di Parti Bene.">
+<meta name="theme-color" content="#062e59">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" href="logo-parti-bene.png">
+<link rel="stylesheet" href="styles.css">
+<title>Dashboard professionista | Parti Bene</title>
+<style>
+.dashboard-grid{display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:start}
+.dashboard-sidebar{position:sticky;top:98px}
+.user-avatar{width:62px;height:62px;border-radius:20px;background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;display:grid;place-items:center;font-size:22px;font-weight:900;margin-bottom:15px}
+.status-pill{display:inline-flex;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:900}
+.status-pending{background:#fff5dc;color:#8a6413}.status-review{background:#eaf3ff;color:#275c91}
+.status-approved{background:#e6f8f4;color:#17705f}.status-rejected{background:#fff1ef;color:#913428}
+.dashboard-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}
+.dashboard-card{background:var(--soft);border-radius:17px;padding:18px}
+.dashboard-card small{display:block;color:var(--muted);margin-bottom:7px}.dashboard-card strong{color:var(--navy);font-size:17px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;margin-top:22px}
+.detail{border-bottom:1px solid var(--line);padding:13px 0}.detail span{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}.detail strong{color:var(--navy);font-size:14px}
+.dashboard-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.dashboard-media{display:grid;grid-template-columns:180px 1fr;gap:14px;margin-top:18px}
+.dashboard-media img{width:100%;height:180px;object-fit:cover;border-radius:16px;background:var(--soft)}
+.dashboard-media img:last-child{height:180px}
+.loading{min-height:260px;display:grid;place-items:center;color:var(--muted)}
+@media(max-width:850px){.dashboard-grid{grid-template-columns:1fr}.dashboard-sidebar{position:static}.dashboard-cards{grid-template-columns:1fr}}
+@media(max-width:620px){.detail-grid,.dashboard-media{grid-template-columns:1fr}.dashboard-media img{height:190px}}
+</style>
+</head>
+<body>
+<div class="topbar">Area riservata professionisti · Parti Bene</div>
+<header><div class="container nav">
+<a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
+<nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a><a href="dashboard.html">Dashboard</a></nav>
+<div class="actions"><a class="btn btn-ghost" href="index.html">Vai al sito</a><button id="logoutButton" class="btn btn-primary" type="button">Esci</button></div>
+</div></header>
+
+<main>
+<section class="page-hero"><div class="container">
+<div class="breadcrumbs"><a href="index.html">Home</a> / Dashboard</div>
+<div class="kicker">Area riservata</div><h1>Il tuo spazio su Parti Bene</h1>
+<p class="hero-copy">Controlla lo stato dell’iscrizione e le informazioni inviate.</p>
+</div></section>
+<section><div class="container dashboard-grid">
+<aside class="panel dashboard-sidebar">
+<div id="userAvatar" class="user-avatar">PB</div>
+<h3 id="userName" style="margin:0;color:var(--navy)">Caricamento…</h3>
+<p id="userEmail" class="meta"></p>
+<a class="btn btn-ghost" href="area-professionisti.html#iscrizione" style="width:100%;margin-top:12px">Nuova richiesta</a>
+</aside>
+<div>
+<div id="loadingPanel" class="panel loading">Caricamento della richiesta…</div>
+<div id="emptyPanel" class="panel" hidden>
+<div class="kicker">Nessuna richiesta</div><h2 style="font-size:32px">Crea il tuo profilo professionale</h2>
+<p class="section-copy">Non troviamo ancora una richiesta associata al tuo account.</p>
+<a class="btn btn-primary" href="area-professionisti.html#iscrizione" style="margin-top:22px">Inizia l’iscrizione</a>
+</div>
+<div id="requestPanel" class="panel" hidden>
+<div style="display:flex;justify-content:space-between;gap:18px;align-items:start;flex-wrap:wrap">
+<div><div class="kicker">Richiesta professionale</div><h2 id="businessName" style="font-size:34px"></h2></div>
+<span id="statusPill" class="status-pill"></span>
+</div>
+<div id="statusNotice" class="notice" style="margin-top:20px"></div>
+<div class="dashboard-cards">
+<div class="dashboard-card"><small>Tipologia</small><strong id="professionalType"></strong></div>
+<div class="dashboard-card"><small>Data di invio</small><strong id="createdAt"></strong></div>
+<div class="dashboard-card"><small>Codice richiesta</small><strong id="requestId" style="font-size:12px;word-break:break-all"></strong></div>
+</div>
+<div class="detail-grid">
+<div class="detail"><span>Referente</span><strong id="contactName"></strong></div>
+<div class="detail"><span>Telefono</span><strong id="phone"></strong></div>
+<div class="detail"><span>Email</span><strong id="contactEmail"></strong></div>
+<div class="detail"><span>Partita IVA</span><strong id="vat"></strong></div>
+<div class="detail"><span>Località</span><strong id="location"></strong></div>
+<div class="detail"><span>Modalità</span><strong id="consultingMode"></strong></div>
+</div>
+<div style="margin-top:26px"><h3 style="color:var(--navy)">Specializzazioni</h3><div id="specializations" class="dashboard-tags"></div></div>
+<div style="margin-top:26px"><h3 style="color:var(--navy)">Destinazioni</h3><div id="destinations" class="dashboard-tags"></div></div>
+<div style="margin-top:26px"><h3 style="color:var(--navy)">Presentazione</h3><p id="presentation" class="section-copy"></p></div>
+<div id="mediaSection" style="margin-top:26px" hidden><h3 style="color:var(--navy)">Immagini inviate</h3><div id="mediaGrid" class="dashboard-media"></div></div>
+</div>
+</div>
+</div></section>
+</main>
+
+<footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>Area protetta da Appwrite</span></div></div></footer>
+<script type="module">
+import { APPWRITE_CONFIG, account, storage, readableError } from "./appwrite-config.js";
+
+const statusLabels = {
+  in_attesa: ["In attesa", "status-pending", "La richiesta è stata ricevuta ed è in attesa del controllo di Parti Bene."],
+  da_integrare: ["Da integrare", "status-review", "Sono necessarie alcune informazioni aggiuntive. Controlla le indicazioni dell’amministratore."],
+  approvata: ["Approvata", "status-approved", "La richiesta è stata approvata. Il profilo pubblico sarà disponibile a breve."],
+  rifiutata: ["Non approvata", "status-rejected", "La richiesta non è stata approvata. Contatta Parti Bene per maggiori informazioni."]
+};
+const modeLabels = { in_sede:"In sede", online:"Online", su_appuntamento:"Su appuntamento", mista:"In sede e online" };
+
+function setText(id, value, fallback = "Non indicato") {
+  document.getElementById(id).textContent = value || fallback;
+}
+function renderTags(id, values) {
+  const target = document.getElementById(id);
+  const list = Array.isArray(values) ? values : [];
+  target.innerHTML = list.length ? list.map(value => '<span class="tag">'+String(value).replace(/[<>&"]/g, "")+'</span>').join("") : '<span class="meta">Non indicate</span>';
+}
+function fileUrl(fileId) {
+  if (!fileId) return null;
+  return storage.getFileView({ bucketId: APPWRITE_CONFIG.mediaBucketId, fileId });
+}
+async function listMyRequests() {
+  const response = await fetch(
+    APPWRITE_CONFIG.endpoint + "/tablesdb/" + APPWRITE_CONFIG.databaseId +
+    "/tables/" + APPWRITE_CONFIG.applicationsTableId + "/rows",
+    {
+      credentials: "include",
+      headers: {
+        "X-Appwrite-Project": APPWRITE_CONFIG.projectId,
+        "X-Appwrite-Response-Format": "1.8.0"
+      }
+    }
+  );
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.message || "Impossibile caricare la richiesta.");
+  return (result.rows || []).sort((a,b) => new Date(b.$createdAt) - new Date(a.$createdAt));
+}
+function renderRequest(row) {
+  document.getElementById("loadingPanel").hidden = true;
+  document.getElementById("requestPanel").hidden = false;
+  setText("businessName", row.nome_attivita);
+  const status = statusLabels[row.stato] || [row.stato || "In lavorazione", "status-review", "La richiesta è in lavorazione."];
+  const pill = document.getElementById("statusPill");
+  pill.textContent = status[0]; pill.classList.add(status[1]);
+  document.getElementById("statusNotice").textContent = status[2];
+  setText("professionalType", row.tipologia === "agenzia" ? "Agenzia di viaggio" : "Consulente di viaggio");
+  setText("createdAt", new Intl.DateTimeFormat("it-IT",{dateStyle:"medium"}).format(new Date(row.$createdAt)));
+  setText("requestId", row.$id);
+  setText("contactName", [row.nome_referente,row.cognome_referente].filter(Boolean).join(" "));
+  setText("phone", row.telefono);
+  setText("contactEmail", row.email);
+  setText("vat", row.partita_iva);
+  setText("location", [row.comune,row.provincia].filter(Boolean).join(" · "));
+  setText("consultingMode", modeLabels[row.modalita_consulenza] || row.modalita_consulenza);
+  setText("presentation", row.presentazione);
+  renderTags("specializations", row.specializzazioni);
+  renderTags("destinations", row.destinazioni);
+
+  const files = [
+    row.logo_file_id ? {id:row.logo_file_id,alt:"Logo inviato"} : null,
+    row.copertina_file_id ? {id:row.copertina_file_id,alt:"Copertina inviata"} : null
+  ].filter(Boolean);
+  if (files.length) {
+    document.getElementById("mediaSection").hidden = false;
+    document.getElementById("mediaGrid").innerHTML = files.map(file => '<img src="'+fileUrl(file.id)+'" alt="'+file.alt+'">').join("");
+  }
+}
+try {
+  const user = await account.get();
+  setText("userName", user.name, "Professionista");
+  setText("userEmail", user.email);
+  document.getElementById("userAvatar").textContent = (user.name || "PB").split(" ").map(part => part[0]).slice(0,2).join("").toUpperCase();
+  const requests = await listMyRequests();
+  if (requests.length) renderRequest(requests[0]);
+  else {
+    document.getElementById("loadingPanel").hidden = true;
+    document.getElementById("emptyPanel").hidden = false;
+  }
+} catch (error) {
+  try { await account.get(); }
+  catch (_) { location.replace("accedi.html?redirect=dashboard.html"); }
+  document.getElementById("loadingPanel").textContent = readableError(error);
+}
+document.getElementById("logoutButton").addEventListener("click", async () => {
+  await account.deleteSession({ sessionId: "current" });
+  location.replace("index.html");
+});
+</script>
+</body></html>
