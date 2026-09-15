@@ -301,3 +301,7 @@ footer{border-top:5px solid var(--orange)}
 .hero>.container{position:relative;z-index:2}
 @media(max-width:900px){.hero-map{right:-22%;top:2%;width:105%;height:78%;opacity:.09}}
 @media(max-width:620px){.hero-map{right:-34%;top:0;width:135%;height:62%;opacity:.075;-webkit-mask-image:linear-gradient(90deg,transparent,#000 45%);mask-image:linear-gradient(90deg,transparent,#000 45%)}}
+
+
+/* Correzione elementi nascosti */
+[hidden]{display:none!important}
