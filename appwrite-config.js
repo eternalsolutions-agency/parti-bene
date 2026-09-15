@@ -28,7 +28,8 @@ export { ID, Permission, Role };
 
 export function readableError(error) {
   if (!error) return "Si è verificato un errore. Riprova.";
-  if (error.code === 401) return "Email o password non corrette.";
+  if (error.code === 401 && error.type === "user_invalid_credentials") return "Email o password non corrette.";
+  if (error.code === 401) return error.message || "Non hai i permessi necessari per completare questa operazione.";
   if (error.code === 409) return "Esiste già un account associato a questa email.";
   if (error.code === 429) return "Troppi tentativi ravvicinati. Attendi qualche minuto e riprova.";
   return error.message || "Si è verificato un errore. Riprova.";
