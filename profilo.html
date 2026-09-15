@@ -26,6 +26,7 @@
 <div class="panel"><div class="profile-title"><div><div id="profileKicker" class="kicker"></div><h1 id="profileName"></h1><p id="profileDescription" class="section-copy"></p></div><span id="profileBadge" class="tag"></span></div>
 <div class="profile-stats"><div class="profile-stat"><strong id="profileCity">—</strong><span>Località</span></div><div class="profile-stat"><strong id="profileMode">—</strong><span>Modalità</span></div><div class="profile-stat"><strong id="profileSpecialtyCount">0</strong><span>Specializzazioni</span></div></div></div>
 <div class="panel"><h2>Conosci il professionista</h2><p id="aboutText" class="section-copy"></p><h3 style="margin-top:25px">Specializzazioni</h3><div id="specialtyTags" class="tags"></div><h3 style="margin-top:25px">Destinazioni</h3><div id="destinationTags" class="tags"></div></div>
+<div id="profileOffersPanel" class="panel" hidden><h2>Offerte pubblicate</h2><div id="profileOffers" class="profile-offers"></div></div>
 <div class="panel"><h2>Informazioni professionali</h2><div class="info-list">
 <div class="info-item"><span>Tipologia</span><strong id="infoType"></strong></div>
 <div class="info-item"><span>Modalità</span><strong id="infoMode"></strong></div>
@@ -45,7 +46,7 @@
 <div><h4>Informazioni</h4><a href="chi-siamo.html">Chi siamo</a><a href="richiedi-proposte.html">Contatti</a><a href="privacy.html">Privacy</a></div>
 </div><div class="legal"><span>© 2026 Parti Bene.</span><span>Profili soggetti ad approvazione</span></div></div></footer>
 <script type="module">
-import { APPWRITE_CONFIG } from "./appwrite-config.js";
+import { APPWRITE_CONFIG, storage } from "./appwrite-config.js";
 import { getDestinationImage } from "./destination-images.js";
 const params=new URLSearchParams(location.search),slug=params.get("slug");
 const message=document.getElementById("profileMessage"),content=document.getElementById("profileContent");
@@ -74,6 +75,13 @@ async function load(){
   renderTags("specialtyTags",profile.specializzazioni);renderTags("destinationTags",profile.destinazioni);
   document.getElementById("profileCover").style.backgroundImage="linear-gradient(90deg,rgba(6,46,89,.3),rgba(6,46,89,.05)),url('"+getDestinationImage(profile.destinazioni,profile.nome+" "+(profile.descrizione||""))+"')";
   document.getElementById("proposalLink").href="richiedi-proposte.html?professionista="+encodeURIComponent(profile.slug);
+  const offerResponse=await fetch(APPWRITE_CONFIG.endpoint+"/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.offersTableId+"/rows",{headers:{"X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"}});
+  const offerResult=await offerResponse.json().catch(()=>({}));
+  const offers=(offerResult.rows||[]).filter(row=>row.professionista_id===profile.$id&&row.stato==="pubblicata");
+  if(offers.length){
+   document.getElementById("profileOffersPanel").hidden=false;
+   document.getElementById("profileOffers").innerHTML=offers.map(row=>{const image=row.immagine_file_id?storage.getFileView({bucketId:APPWRITE_CONFIG.mediaBucketId,fileId:row.immagine_file_id}):getDestinationImage([row.destinazione],row.titolo);return '<article class="mini-offer"><img src="'+image+'" alt="'+String(row.destinazione).replace(/[<>&"]/g,"")+'"><div><h3>'+String(row.titolo).replace(/[<>&"]/g,"")+'</h3><p class="price">Da € '+Number(row.prezzo_da||0).toLocaleString("it-IT")+'</p><a class="text-link" href="richiedi-proposte.html?professionista='+encodeURIComponent(profile.slug)+'">Richiedi informazioni →</a></div></article>';}).join("");
+  }
   message.hidden=true;content.hidden=false;
  }catch(error){message.innerHTML='<h2>Profilo non disponibile</h2><p class="section-copy" style="margin:auto">'+String(error.message).replace(/[<>&"]/g,"")+'</p><p style="margin-top:20px"><a class="btn btn-ghost" href="professionisti.html">Torna ai professionisti</a></p>';}
 }
