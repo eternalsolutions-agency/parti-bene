@@ -27,6 +27,14 @@
 .loading{min-height:260px;display:grid;place-items:center;color:var(--muted)}
 .profile-edit-form{margin-top:26px}
 .profile-edit-form .consent-line{background:var(--orange-soft);border:1px solid #ffd8bd;border-radius:14px;padding:14px}
+.dashboard-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.offers-admin-list{display:grid;gap:12px;margin-top:24px}
+.offer-admin-item{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--soft)}
+.offer-admin-item h3{margin:0 0 6px;color:var(--navy)}.offer-admin-item p{margin:0;color:var(--muted);font-size:13px}
+.offer-admin-actions{display:flex;gap:8px;flex-wrap:wrap}.offer-admin-actions .btn{padding:9px 11px;font-size:12px}
+.offer-editor{margin-top:26px;padding-top:24px;border-top:1px solid var(--line)}
+.offer-form-actions{display:flex;gap:10px}
+.offer-state{display:inline-flex;margin-top:9px;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;background:var(--orange-soft);color:var(--orange-dark)}
 @media(max-width:850px){.dashboard-grid{grid-template-columns:1fr}.dashboard-sidebar{position:static}.dashboard-cards{grid-template-columns:1fr}}
 @media(max-width:620px){.detail-grid,.dashboard-media{grid-template-columns:1fr}.dashboard-media img{height:190px}}
 </style>
@@ -106,13 +114,33 @@
 </form>
 <div id="profileMessage" class="notice" role="status" aria-live="polite" hidden></div>
 </div>
+<div id="offersManager" class="panel" hidden>
+<div class="dashboard-section-head"><div><div class="kicker">Le tue proposte</div><h2 style="font-size:32px">Offerte di viaggio</h2><p class="section-copy">Crea una bozza oppure pubblica subito una proposta.</p></div><button id="newOfferButton" class="btn btn-primary" type="button">Nuova offerta</button></div>
+<div id="offersList" class="offers-admin-list"></div>
+<form id="offerForm" class="form-grid offer-editor" hidden>
+<input type="hidden" name="offer_id">
+<div class="form-field full"><label>Titolo *</label><input name="titolo" required maxlength="150"></div>
+<div class="form-field"><label>Destinazione *</label><input name="destinazione" required maxlength="100"></div>
+<div class="form-field"><label>Tipologia *</label><select name="tipologia" required><option value="">Seleziona</option><option>Viaggio di nozze</option><option>Crociera</option><option>Famiglia</option><option>Tour organizzato</option><option>Viaggio su misura</option><option>Weekend</option><option>Altro</option></select></div>
+<div class="form-field full"><label>Descrizione *</label><textarea name="descrizione" rows="5" required maxlength="2000"></textarea></div>
+<div class="form-field"><label>Prezzo da (€) *</label><input name="prezzo_da" type="number" min="0" step="1" required></div>
+<div class="form-field"><label>Durata</label><input name="durata" maxlength="60" placeholder="Es. 8 giorni / 7 notti"></div>
+<div class="form-field"><label>Periodo</label><input name="periodo" maxlength="100" placeholder="Es. Da maggio a settembre"></div>
+<div class="form-field"><label>Partenza da</label><input name="partenza_da" maxlength="100"></div>
+<div class="form-field full"><label>Servizi inclusi</label><textarea name="servizi_inclusi" rows="3" maxlength="2000" placeholder="Es. volo, hotel, trasferimenti, assicurazione"></textarea></div>
+<div class="form-field"><label>Immagine dell’offerta</label><input name="immagine" type="file" accept="image/png,image/jpeg,image/webp"><small class="meta">JPG, PNG o WebP · massimo 10 MB</small></div>
+<div class="form-field"><label>Stato *</label><select name="stato"><option value="bozza">Salva come bozza</option><option value="pubblicata">Pubblica nel portale</option><option value="disattivata">Disattivata</option></select></div>
+<div class="offer-form-actions form-field full"><button id="saveOfferButton" class="btn btn-primary" type="submit">Salva offerta</button><button id="cancelOfferButton" class="btn btn-ghost" type="button">Annulla</button></div>
+<div id="offerMessage" class="notice form-field full" role="status" aria-live="polite" hidden></div>
+</form>
+</div>
 </div>
 </div></section>
 </main>
 
 <footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>Area protetta da Appwrite</span></div></div></footer>
 <script type="module">
-import { APPWRITE_CONFIG, account, storage, Permission, Role, readableError } from "./appwrite-config.js";
+import { APPWRITE_CONFIG, account, storage, ID, Permission, Role, readableError } from "./appwrite-config.js";
 
 const statusLabels = {
   in_attesa: ["In attesa", "status-pending", "La richiesta è stata ricevuta ed è in attesa del controllo di Parti Bene."],
@@ -124,6 +152,11 @@ const modeLabels = { in_sede:"In sede", online:"Online", su_appuntamento:"Su app
 let currentProfile = null;
 const profileForm = document.getElementById("profileForm");
 const profileMessage = document.getElementById("profileMessage");
+const offersManager=document.getElementById("offersManager");
+const offersList=document.getElementById("offersList");
+const offerForm=document.getElementById("offerForm");
+const offerMessage=document.getElementById("offerMessage");
+let myOffers=[];
 
 function apiHeaders() {
   return {"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"};
@@ -195,7 +228,9 @@ async function loadOwnedProfile(user, application) {
   profileForm.elements.specializzazioni.value=(currentProfile.specializzazioni||[]).join(", ");
   profileForm.elements.destinazioni.value=(currentProfile.destinazioni||[]).join(", ");
   profileForm.elements.disponibile_online.checked=Boolean(currentProfile.disponibile_online);
-  document.getElementById("publicProfileLink").href="profilo.html?id="+encodeURIComponent(currentProfile.$id);
+  document.getElementById("publicProfileLink").href="profilo.html?slug="+encodeURIComponent(currentProfile.slug);
+  offersManager.hidden=false;
+  await loadMyOffers(user.$id);
 }
 function renderRequest(row) {
   document.getElementById("loadingPanel").hidden = true;
@@ -247,6 +282,66 @@ try {
   catch (_) { location.replace("accedi.html?redirect=dashboard.html"); }
   document.getElementById("loadingPanel").textContent = readableError(error);
 }
+
+function offerPermissions(userId,status){
+ const permissions=[Permission.read(Role.user(userId)),Permission.update(Role.user(userId)),Permission.delete(Role.user(userId)),Permission.update(Role.label("admin")),Permission.delete(Role.label("admin"))];
+ if(status==="pubblicata")permissions.unshift(Permission.read(Role.any()));
+ return permissions;
+}
+async function uploadOfferImage(file,userId){
+ if(!file||!file.size)return null;
+ const uploaded=await storage.createFile({bucketId:APPWRITE_CONFIG.mediaBucketId,fileId:ID.unique(),file,permissions:[Permission.read(Role.any()),Permission.update(Role.user(userId)),Permission.delete(Role.user(userId)),Permission.delete(Role.label("admin"))]});
+ return uploaded.$id;
+}
+async function loadMyOffers(userId){
+ const result=await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.offersTableId+"/rows");
+ myOffers=(result.rows||[]).filter(row=>row.utente_id===userId).sort((a,b)=>new Date(b.$createdAt)-new Date(a.$createdAt));
+ renderMyOffers();
+}
+function renderMyOffers(){
+ offersList.innerHTML=myOffers.length?myOffers.map(row=>'<article class="offer-admin-item"><div><h3>'+escapeOffer(row.titolo)+'</h3><p>'+escapeOffer(row.destinazione)+' · Da € '+Number(row.prezzo_da||0).toLocaleString("it-IT")+'</p><span class="offer-state">'+escapeOffer(row.stato)+'</span></div><div class="offer-admin-actions"><button class="btn btn-ghost" data-offer-edit="'+row.$id+'">Modifica</button><button class="btn btn-dark" data-offer-toggle="'+row.$id+'">'+(row.stato==="pubblicata"?"Disattiva":"Pubblica")+'</button><button class="btn btn-ghost" data-offer-delete="'+row.$id+'">Elimina</button></div></article>').join(""):'<div class="notice">Non hai ancora creato offerte di viaggio.</div>';
+}
+function escapeOffer(value=""){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]));}
+function openOfferForm(row=null){
+ offerForm.hidden=false;offerMessage.hidden=true;offerForm.reset();
+ offerForm.elements.offer_id.value=row?.$id||"";
+ if(row){["titolo","destinazione","tipologia","descrizione","prezzo_da","durata","periodo","partenza_da","servizi_inclusi","stato"].forEach(key=>offerForm.elements[key].value=row[key]??"");}
+ offerForm.scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.getElementById("newOfferButton").addEventListener("click",()=>openOfferForm());
+document.getElementById("cancelOfferButton").addEventListener("click",()=>{offerForm.hidden=true;});
+offersList.addEventListener("click",async event=>{
+ const edit=event.target.closest("[data-offer-edit]"),toggle=event.target.closest("[data-offer-toggle]"),del=event.target.closest("[data-offer-delete]");
+ if(edit){openOfferForm(myOffers.find(row=>row.$id===edit.dataset.offerEdit));return;}
+ const target=toggle||del;if(!target)return;
+ const id=toggle?.dataset.offerToggle||del?.dataset.offerDelete,row=myOffers.find(item=>item.$id===id);if(!row)return;
+ try{
+  if(del){
+   if(!confirm("Eliminare definitivamente questa offerta?"))return;
+   await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.offersTableId+"/rows/"+id,{method:"DELETE"});
+  }else{
+   const stato=row.stato==="pubblicata"?"disattivata":"pubblicata";
+   await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.offersTableId+"/rows/"+id,{method:"PATCH",body:{data:{stato},permissions:offerPermissions(row.utente_id,stato)}});
+  }
+  await loadMyOffers(row.utente_id);
+ }catch(error){alert(readableError(error));}
+});
+offerForm.addEventListener("submit",async event=>{
+ event.preventDefault();if(!currentProfile)return;
+ const button=document.getElementById("saveOfferButton"),data=new FormData(offerForm),id=String(data.get("offer_id")||"");
+ button.disabled=true;button.textContent="Salvataggio…";offerMessage.hidden=false;offerMessage.textContent="Operazione in corso…";
+ try{
+  const existing=myOffers.find(row=>row.$id===id);
+  const imageId=await uploadOfferImage(data.get("immagine"),currentProfile.utente_id);
+  const offerData={professionista_id:currentProfile.$id,utente_id:currentProfile.utente_id,titolo:String(data.get("titolo")).trim(),destinazione:String(data.get("destinazione")).trim(),tipologia:String(data.get("tipologia")).trim(),descrizione:String(data.get("descrizione")).trim(),prezzo_da:Number(data.get("prezzo_da")),durata:String(data.get("durata")||"").trim()||null,periodo:String(data.get("periodo")||"").trim()||null,partenza_da:String(data.get("partenza_da")||"").trim()||null,servizi_inclusi:String(data.get("servizi_inclusi")||"").trim()||null,immagine_file_id:imageId||existing?.immagine_file_id||null,stato:String(data.get("stato")),in_evidenza:false};
+  Object.keys(offerData).forEach(key=>{if(offerData[key]===null)delete offerData[key];});
+  const path="/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.offersTableId+"/rows"+(id?"/"+id:"");
+  await profileApi(path,{method:id?"PATCH":"POST",body:id?{data:offerData,permissions:offerPermissions(currentProfile.utente_id,offerData.stato)}:{rowId:ID.unique(),data:offerData,permissions:offerPermissions(currentProfile.utente_id,offerData.stato)}});
+  offerMessage.textContent="Offerta salvata correttamente.";await loadMyOffers(currentProfile.utente_id);offerForm.reset();offerForm.hidden=true;
+ }catch(error){offerMessage.textContent=readableError(error);offerMessage.style.background="#fff1ef";offerMessage.style.color="#913428";}
+ finally{button.disabled=false;button.textContent="Salva offerta";}
+});
+
 profileForm.addEventListener("submit",async event=>{
   event.preventDefault();
   if(!currentProfile)return;
