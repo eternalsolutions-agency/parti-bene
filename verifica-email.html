@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Verifica dell'indirizzo email per Parti Bene.">
+  <meta name="theme-color" content="#062e59">
+  <link rel="icon" type="image/png" href="logo-parti-bene.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>Verifica email | Parti Bene</title>
+</head>
+<body>
+<div class="topbar">Parti Bene · verifica dell’account</div>
+<header><div class="container nav">
+  <a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
+  <nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="come-funziona.html">Come funziona</a><a href="area-professionisti.html">Sei un professionista?</a></nav>
+  <div class="actions"><a class="btn btn-ghost" href="accedi.html">Accedi</a></div>
+</div></header>
+<main>
+<section class="page-hero"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a> / Verifica email</div><h1>Verifica il tuo account</h1><p class="hero-copy">Confermiamo l’indirizzo email associato alla tua iscrizione.</p></div></section>
+<section><div class="container" style="max-width:620px">
+  <div class="panel">
+    <div id="verificationMessage" class="notice" role="status" aria-live="polite">Verifica in corso…</div>
+    <div id="verificationActions" style="display:none;margin-top:22px;gap:10px;flex-wrap:wrap">
+      <a class="btn btn-primary" href="accedi.html">Vai all’area riservata</a>
+      <a class="btn btn-ghost" href="index.html">Torna alla homepage</a>
+    </div>
+  </div>
+</div></section>
+</main>
+<footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>Account protetti da Appwrite</span></div></div></footer>
+<script type="module">
+import { account, readableError } from "./appwrite-config.js";
+const message = document.getElementById("verificationMessage");
+const actions = document.getElementById("verificationActions");
+const params = new URLSearchParams(location.search);
+const userId = params.get("userId");
+const secret = params.get("secret");
+
+if (!userId || !secret) {
+  message.textContent = "Il collegamento di verifica non è completo o non è più valido.";
+  message.style.background = "#fff1ef";
+  message.style.borderColor = "#ffd1ca";
+  message.style.color = "#8f3327";
+  actions.style.display = "flex";
+} else {
+  try {
+    await account.updateEmailVerification({ userId, secret });
+    message.innerHTML = "<strong>Email verificata correttamente.</strong><br>Ora puoi accedere e seguire la tua richiesta.";
+    actions.style.display = "flex";
+  } catch (error) {
+    message.textContent = readableError(error);
+    message.style.background = "#fff1ef";
+    message.style.borderColor = "#ffd1ca";
+    message.style.color = "#8f3327";
+    actions.style.display = "flex";
+  }
+}
+</script>
+</body>
+</html>
