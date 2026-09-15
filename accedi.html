@@ -89,6 +89,12 @@ try {
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   button.disabled = true;
+  try {
+    const existingUser = await account.get();
+    showAccount(existingUser);
+    button.disabled = false;
+    return;
+  } catch (_) {}
   button.textContent = "Accesso in corso…";
   message.hidden = true;
   try {
@@ -99,6 +105,12 @@ form.addEventListener("submit", async (event) => {
     });
     showAccount(await account.get());
   } catch (error) {
+    if (error && error.type === "user_session_already_exists") {
+      try {
+        showAccount(await account.get());
+        return;
+      } catch (_) {}
+    }
     showMessage(readableError(error), true);
   } finally {
     button.disabled = false;
