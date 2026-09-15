@@ -25,6 +25,18 @@
 .dashboard-media img{width:100%;height:180px;object-fit:cover;border-radius:16px;background:var(--soft)}
 .dashboard-media img:last-child{height:180px}
 .loading{min-height:260px;display:grid;place-items:center;color:var(--muted)}
+.dashboard-menu{display:grid;gap:6px;margin:22px 0}
+.dashboard-menu-item{width:100%;display:flex;align-items:center;gap:10px;border:0;border-radius:12px;background:transparent;color:var(--ink);padding:11px 12px;text-align:left;font-weight:800;cursor:pointer}
+.dashboard-menu-item span{width:23px;color:var(--orange-dark);font-size:17px;text-align:center}
+.dashboard-menu-item:hover{background:var(--orange-soft)}
+.dashboard-menu-item.active{background:linear-gradient(135deg,var(--navy),#0a4779);color:#fff;box-shadow:0 9px 20px rgba(6,46,89,.16)}
+.dashboard-menu-item.active span{color:var(--orange)}
+.dashboard-view{display:none!important}.dashboard-view.view-ready{display:none!important}
+body[data-dashboard-view="overview"] .dashboard-view[data-dashboard-view="overview"].view-ready,
+body[data-dashboard-view="profile"] .dashboard-view[data-dashboard-view="profile"].view-ready,
+body[data-dashboard-view="offers"] .dashboard-view[data-dashboard-view="offers"].view-ready,
+body[data-dashboard-view="requests"] .dashboard-view[data-dashboard-view="requests"].view-ready,
+body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messages"].view-ready{display:block!important}
 .profile-edit-form{margin-top:26px}
 .profile-edit-form .consent-line{background:var(--orange-soft);border:1px solid #ffd8bd;border-radius:14px;padding:14px}
 .dashboard-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
@@ -40,7 +52,7 @@
 </style>
 <script src="effects.js" defer></script>
 </head>
-<body>
+<body data-dashboard-view="overview">
 <div class="topbar">Area riservata professionisti · Parti Bene</div>
 <header><div class="container nav">
 <a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
@@ -59,17 +71,25 @@
 <div id="userAvatar" class="user-avatar">PB</div>
 <h3 id="userName" style="margin:0;color:var(--navy)">Caricamento…</h3>
 <p id="userEmail" class="meta"></p>
+<nav class="dashboard-menu" aria-label="Menu dashboard">
+<button class="dashboard-menu-item active" type="button" data-view="overview"><span>⌂</span> Panoramica</button>
+<button class="dashboard-menu-item" type="button" data-view="profile"><span>✎</span> Modifica profilo</button>
+<button class="dashboard-menu-item" type="button" data-view="new-offer"><span>＋</span> Nuova offerta</button>
+<button class="dashboard-menu-item" type="button" data-view="offers"><span>▤</span> Le mie offerte</button>
+<button class="dashboard-menu-item" type="button" data-view="requests"><span>◇</span> Richieste clienti</button>
+<button class="dashboard-menu-item" type="button" data-view="messages"><span>●</span> Messaggi dalla sede</button>
+</nav>
 <a id="adminLink" class="btn btn-dark" href="admin.html" style="width:100%;margin-top:12px" hidden>Pannello amministratore</a>
 <a class="btn btn-ghost" href="area-professionisti.html" style="width:100%;margin-top:10px">Nuova richiesta</a>
 </aside>
 <div>
 <div id="loadingPanel" class="panel loading">Caricamento della richiesta…</div>
-<div id="emptyPanel" class="panel" hidden>
+<div id="emptyPanel" class="panel dashboard-view" data-dashboard-view="overview" hidden>
 <div class="kicker">Nessuna richiesta</div><h2 style="font-size:32px">Crea il tuo profilo professionale</h2>
 <p class="section-copy">Non troviamo ancora una richiesta associata al tuo account.</p>
 <a class="btn btn-primary" href="area-professionisti.html" style="margin-top:22px">Inizia l’iscrizione</a>
 </div>
-<div id="requestPanel" class="panel" hidden>
+<div id="requestPanel" class="panel dashboard-view" data-dashboard-view="overview" hidden>
 <div style="display:flex;justify-content:space-between;gap:18px;align-items:start;flex-wrap:wrap">
 <div><div class="kicker">Richiesta professionale</div><h2 id="businessName" style="font-size:34px"></h2></div>
 <span id="statusPill" class="status-pill"></span>
@@ -93,11 +113,11 @@
 <div style="margin-top:26px"><h3 style="color:var(--navy)">Presentazione</h3><p id="presentation" class="section-copy"></p></div>
 <div id="mediaSection" style="margin-top:26px" hidden><h3 style="color:var(--navy)">Immagini inviate</h3><div id="mediaGrid" class="dashboard-media"></div></div>
 </div>
-<div id="profileLinkNotice" class="panel" hidden>
+<div id="profileLinkNotice" class="panel dashboard-view" data-dashboard-view="profile" hidden>
 <div class="kicker">Profilo pubblico</div><h2 style="font-size:30px">Collegamento in corso</h2>
 <p class="section-copy">La richiesta è approvata, ma il profilo deve essere collegato al tuo account. Un amministratore può completare il collegamento premendo nuovamente “Approva e pubblica”.</p>
 </div>
-<div id="profileEditor" class="panel" hidden>
+<div id="profileEditor" class="panel dashboard-view" data-dashboard-view="profile" hidden>
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:start;flex-wrap:wrap">
 <div><div class="kicker">Profilo pubblico</div><h2 style="font-size:32px">Modifica la tua scheda</h2><p class="section-copy">Le modifiche salvate saranno visibili nel portale.</p></div>
 <a id="publicProfileLink" class="btn btn-ghost" href="profilo.html">Visualizza profilo</a>
@@ -114,7 +134,7 @@
 </form>
 <div id="profileMessage" class="notice" role="status" aria-live="polite" hidden></div>
 </div>
-<div id="offersManager" class="panel" hidden>
+<div id="offersManager" class="panel dashboard-view" data-dashboard-view="offers" hidden>
 <div class="dashboard-section-head"><div><div class="kicker">Le tue proposte</div><h2 style="font-size:32px">Offerte di viaggio</h2><p class="section-copy">Crea una bozza oppure pubblica subito una proposta.</p></div><button id="newOfferButton" class="btn btn-primary" type="button">Nuova offerta</button></div>
 <div id="offersList" class="offers-admin-list"></div>
 <form id="offerForm" class="form-grid offer-editor" hidden>
@@ -133,6 +153,16 @@
 <div class="offer-form-actions form-field full"><button id="saveOfferButton" class="btn btn-primary" type="submit">Salva offerta</button><button id="cancelOfferButton" class="btn btn-ghost" type="button">Annulla</button></div>
 <div id="offerMessage" class="notice form-field full" role="status" aria-live="polite" hidden></div>
 </form>
+</div>
+<div id="clientRequestsPanel" class="panel dashboard-view view-ready" data-dashboard-view="requests">
+<div class="kicker">Richieste clienti</div><h2 style="font-size:32px">Viaggiatori compatibili con te</h2>
+<p class="section-copy">Qui compariranno le richieste assegnate in base alle tue destinazioni, specializzazioni e modalità di consulenza.</p>
+<div class="notice" style="margin-top:20px">Il collegamento ad Appwrite è in configurazione.</div>
+</div>
+<div id="headquartersMessagesPanel" class="panel dashboard-view view-ready" data-dashboard-view="messages">
+<div class="kicker">Comunicazioni</div><h2 style="font-size:32px">Messaggi dalla sede</h2>
+<p class="section-copy">Aggiornamenti, richieste di integrazione e comunicazioni amministrative di Parti Bene saranno raccolti qui.</p>
+<div class="notice" style="margin-top:20px">Non ci sono nuovi messaggi.</div>
 </div>
 </div>
 </div></section>
@@ -217,10 +247,12 @@ async function loadOwnedProfile(user, application) {
   }
   if(!currentProfile){
     document.getElementById("profileLinkNotice").hidden=false;
+    document.getElementById("profileLinkNotice").classList.add("view-ready");
     return;
   }
   document.getElementById("profileLinkNotice").hidden=true;
   document.getElementById("profileEditor").hidden=false;
+  document.getElementById("profileEditor").classList.add("view-ready");
   profileForm.elements.nome.value=currentProfile.nome||"";
   profileForm.elements.comune.value=currentProfile.comune||"";
   profileForm.elements.provincia.value=currentProfile.provincia||"";
@@ -230,11 +262,13 @@ async function loadOwnedProfile(user, application) {
   profileForm.elements.disponibile_online.checked=Boolean(currentProfile.disponibile_online);
   document.getElementById("publicProfileLink").href="profilo.html?slug="+encodeURIComponent(currentProfile.slug);
   offersManager.hidden=false;
+  offersManager.classList.add("view-ready");
   await loadMyOffers(user.$id);
 }
 function renderRequest(row) {
   document.getElementById("loadingPanel").hidden = true;
   document.getElementById("requestPanel").hidden = false;
+  document.getElementById("requestPanel").classList.add("view-ready");
   setText("businessName", row.nome_attivita);
   const status = statusLabels[row.stato] || [row.stato || "In lavorazione", "status-review", "La richiesta è in lavorazione."];
   const pill = document.getElementById("statusPill");
@@ -276,6 +310,7 @@ try {
   else {
     document.getElementById("loadingPanel").hidden = true;
     document.getElementById("emptyPanel").hidden = false;
+    document.getElementById("emptyPanel").classList.add("view-ready");
   }
 } catch (error) {
   try { await account.get(); }
@@ -340,6 +375,20 @@ offerForm.addEventListener("submit",async event=>{
   offerMessage.textContent="Offerta salvata correttamente.";await loadMyOffers(currentProfile.utente_id);offerForm.reset();offerForm.hidden=true;
  }catch(error){offerMessage.textContent=readableError(error);offerMessage.style.background="#fff1ef";offerMessage.style.color="#913428";}
  finally{button.disabled=false;button.textContent="Salva offerta";}
+});
+
+
+function activateDashboardView(view){
+ const target=view==="new-offer"?"offers":view;
+ document.body.dataset.dashboardView=target;
+ document.querySelectorAll(".dashboard-menu-item").forEach(button=>button.classList.toggle("active",button.dataset.view===view||(view==="offers"&&button.dataset.view==="offers")));
+ if(view==="new-offer"){
+  if(!currentProfile){alert("Il profilo deve essere approvato prima di creare un’offerta.");return;}
+  openOfferForm();
+ }
+}
+document.querySelector(".dashboard-menu").addEventListener("click",event=>{
+ const button=event.target.closest("[data-view]");if(button)activateDashboardView(button.dataset.view);
 });
 
 profileForm.addEventListener("submit",async event=>{
