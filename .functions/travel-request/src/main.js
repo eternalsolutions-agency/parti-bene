@@ -55,10 +55,9 @@ export default async ({ req, res, error }) => {
   }
 
   const action = body.action || "create";
-  // When invoked through the Functions Executions API the end-user identity
-  // is available to the function as APPWRITE_FUNCTION_USER_ID. Keep the
-  // header fallback for direct/runtime-compatible invocations.
-  const userId = process.env.APPWRITE_FUNCTION_USER_ID || req.headers["x-appwrite-user-id"] || cleanText(body.userId, 80) || null;
+  // Appwrite injects this header only when an authenticated user invokes the Function.
+  // Never trust a user ID supplied in the request body.
+  const userId = req.headers["x-appwrite-user-id"] || null;
 
   try {
     const tables = new TablesDB(adminClient(req));
@@ -90,6 +89,27 @@ export default async ({ req, res, error }) => {
         if (value) payload[key] = value;
       }
       if (!payload.privacy_accettata) return res.json({ error: "È necessario accettare l'informativa privacy." }, 400);
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(payload.email)) return res.json({ error: "Inserisci un indirizzo email valido." }, 400);
+
+      // Lightweight abuse protection without exposing PII or requiring a public table.
+      // Block immediate duplicates and excessive submissions from the same contact.
+      const recent = await tables.listRows({
+        databaseId: DATABASE_ID,
+        tableId: TRAVEL_REQUESTS_TABLE_ID,
+        queries: [Query.orderDesc("$createdAt"), Query.limit(100)]
+      });
+      const now = Date.now();
+      const emailKey = payload.email.toLowerCase();
+      const phoneKey = payload.telefono.replace(/\\D/g, "");
+      const sameContact = (recent.rows || []).filter(row => {
+        const rowEmail = String(row.email || "").trim().toLowerCase();
+        const rowPhone = String(row.telefono || "").replace(/\\D/g, "");
+        return rowEmail === emailKey || (phoneKey.length >= 7 && rowPhone === phoneKey);
+      });
+      const immediateDuplicate = sameContact.some(row => now - new Date(row.$createdAt).getTime() < 2 * 60 * 1000);
+      if (immediateDuplicate) return res.json({ error: "Questa richiesta risulta già inviata. Attendi qualche minuto prima di riprovare." }, 429);
+      const recentCount = sameContact.filter(row => now - new Date(row.$createdAt).getTime() < 30 * 60 * 1000).length;
+      if (recentCount >= 4) return res.json({ error: "Hai inviato troppe richieste in poco tempo. Riprova più tardi." }, 429);
 
       let professional = null;
       if (payload.professionista_preferito) {
@@ -200,18 +220,7 @@ export default async ({ req, res, error }) => {
 
     return res.json({ error: "Azione non riconosciuta." }, 400);
   } catch (err) {
-    const cause = err?.cause;
-    const diagnostic = {
-      name: err?.name || null,
-      message: err?.message || String(err),
-      causeName: cause?.name || null,
-      causeMessage: cause?.message || null,
-      causeCode: cause?.code || null,
-      endpoint: process.env.APPWRITE_FUNCTION_API_ENDPOINT || null,
-      hasDynamicKey: Boolean(process.env.PARTI_BENE_SERVER_API_KEY || process.env.APPWRITE_FUNCTION_API_KEY || req.headers["x-appwrite-key"]),
-      hasProjectId: Boolean(process.env.APPWRITE_FUNCTION_PROJECT_ID)
-    };
-    error(JSON.stringify(diagnostic));
-    return res.json({ error: diagnostic.message, diagnostic }, 500);
+    error(err?.message || String(err));
+    return res.json({ error: "Si è verificato un errore durante l'elaborazione della richiesta." }, 500);
   }
 };
