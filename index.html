@@ -41,7 +41,7 @@
 
         <div class="match-wizard" id="matchWizard">
           <div class="match-progress"><div id="matchProgressBar"></div></div>
-          <div class="match-step-label" id="matchStepLabel">Domanda 1 di 8</div>
+          <div class="match-step-label" id="matchStepLabel">Domanda 1 di 9</div>
 
           <form id="travelMatchForm">
             <section class="match-step active" data-step="0">
@@ -93,6 +93,17 @@
               </div><input type="hidden" name="assistance">
             </section>
             <section class="match-step" data-step="7">
+              <div class="match-question">Come preferisci richiedere la consulenza?</div>
+              <p>Puoi cercare un professionista che offre un primo contatto gratuito oppure valorizzare il tempo dedicato alla tua richiesta con una consulenza professionale. Se confermi la proposta, l'importo viene scalato.</p>
+              <div class="match-options single consultation-options">
+                <button type="button" data-value="paid"><strong>⭐ Consulenza professionale</strong><span class="consult-price" id="consultPrice">da 20 €</span><small>Richiesta dedicata a professionisti disponibili a lavorare concretamente sulla tua esigenza.</small></button>
+                <button type="button" data-value="free"><strong>Consulenza gratuita</strong><span class="consult-price">0 €</span><small>Cercheremo professionisti che hanno scelto di offrire gratuitamente il primo contatto.</small></button>
+              </div>
+              <input type="hidden" name="consultation_mode">
+              <input type="hidden" name="consultation_fee" id="consultationFee">
+              <div class="safe-note" id="consultationRule">Tariffa calcolata in base alla richiesta: 20 € per voli Italia/Europa, hotel e servizi semplici; 50 € per voli intercontinentali e viaggi di nozze. Se nessun professionista accetta una richiesta pagata, è previsto il rimborso integrale.</div>
+            </section>
+            <section class="match-step" data-step="8">
               <div class="match-question">Ultimo passo: come possiamo ricontattarti?</div>
               <p>I tuoi dati serviranno per la richiesta Travel Match e per metterti in contatto con professionisti compatibili.</p>
               <div class="match-two"><input class="match-input" name="name" placeholder="Nome e cognome" required><input class="match-input" name="phone" type="tel" placeholder="Telefono" required></div>
