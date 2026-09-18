@@ -184,6 +184,43 @@ export default async ({ req, res, error }) => {
 
     if (!userId) return res.json({ error: "Accedi come professionista per continuare." }, 401);
 
+    if (action === "my-profile") {
+      const profiles = await tables.listRows({
+        databaseId: DATABASE_ID,
+        tableId: PROFESSIONALS_TABLE_ID,
+        queries: [Query.limit(100)]
+      });
+      const profile = (profiles.rows || []).find(row => String(row.utente_id || "") === String(userId));
+      if (!profile) return res.json({ error: "Profilo professionale non trovato." }, 404);
+      return res.json({ ok: true, profile });
+    }
+
+    if (action === "update-profile") {
+      const profiles = await tables.listRows({
+        databaseId: DATABASE_ID,
+        tableId: PROFESSIONALS_TABLE_ID,
+        queries: [Query.limit(100)]
+      });
+      const profile = (profiles.rows || []).find(row => String(row.utente_id || "") === String(userId));
+      if (!profile) return res.json({ error: "Profilo professionale non trovato." }, 404);
+      const source = body.profile || {};
+      const existingPreference = String(profile.descrizione || "").match(/\[Preferenza richieste:\s*(free|paid|both)\]/i)?.[0] || "";
+      let description = cleanText(source.descrizione, 2000) || "";
+      description = description.replace(/\n*\[Preferenza richieste:\s*(free|paid|both)\]\s*$/i, "").trim();
+      if (existingPreference) description += (description ? "\n\n" : "") + existingPreference;
+      const data = {
+        nome: cleanText(source.nome, 180) || profile.nome,
+        comune: cleanText(source.comune, 120),
+        provincia: cleanText(source.provincia, 20),
+        descrizione: description,
+        specializzazioni: Array.isArray(source.specializzazioni) ? source.specializzazioni.map(v => cleanText(v, 100)).filter(Boolean).slice(0, 30) : [],
+        destinazioni: Array.isArray(source.destinazioni) ? source.destinazioni.map(v => cleanText(v, 100)).filter(Boolean).slice(0, 50) : [],
+        disponibile_online: source.disponibile_online === true
+      };
+      const updated = await tables.updateRow({databaseId:DATABASE_ID,tableId:PROFESSIONALS_TABLE_ID,rowId:profile.$id,data});
+      return res.json({ ok: true, profile: updated });
+    }
+
     if (action === "list") {
       // Avoid relying on a table index/query for utente_id while the schema is
       // still being finalized. Read the small assignment set server-side and
