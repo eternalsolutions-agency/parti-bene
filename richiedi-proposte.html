@@ -110,22 +110,14 @@ form.addEventListener("submit",async function(e){
    stato:"nuova",numero_assegnazioni:0,privacy_accettata:true
   };
   Object.keys(payload).forEach(key=>{if(payload[key]===null)delete payload[key];});
-  const response=await fetch(APPWRITE_CONFIG.endpoint+"/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.travelRequestsTableId+"/rows",{
-   method:"POST",headers:{"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"},
-   body:JSON.stringify({rowId:ID.unique(),data:payload,permissions:[]})
+  const functionResponse=await fetch("https://parti-bene.fra.appwrite.run/",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({action:"create",request:payload})
   });
-  const result=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(result.message||"Non è stato possibile inviare la richiesta.");
-  if(selectedSlug){
-   const profilesResponse=await fetch(APPWRITE_CONFIG.endpoint+"/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows",{headers:{"X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"}});
-   const profilesData=await profilesResponse.json().catch(()=>({}));
-   const professional=(profilesData.rows||[]).find(row=>row.slug===selectedSlug&&row.stato==="pubblicato");
-   if(!professional||!professional.utente_id)throw new Error("La richiesta è stata salvata, ma non è stato possibile assegnarla automaticamente al professionista scelto.");
-   const assignmentPayload={utente_id:professional.utente_id,richiesta_id:result.$id,stato:"nuova",letta:false};
-   const assignmentResponse=await fetch(APPWRITE_CONFIG.endpoint+"/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.requestAssignmentsTableId+"/rows",{method:"POST",headers:{"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"},body:JSON.stringify({rowId:ID.unique(),data:assignmentPayload,permissions:[]})});
-   const assignmentResult=await assignmentResponse.json().catch(()=>({}));
-   if(!assignmentResponse.ok)throw new Error(assignmentResult.message||"La richiesta è stata salvata, ma l'assegnazione automatica non è riuscita.");
-  }
+  const result=await functionResponse.json().catch(()=>({}));
+  if(!functionResponse.ok)throw new Error(result.error||"Non è stato possibile inviare la richiesta.");
+  if(selectedSlug&&!result.assigned)throw new Error("La richiesta è stata salvata, ma non è stato possibile assegnarla automaticamente al professionista scelto.");
   form.reset();message.textContent=selectedSlug?"Richiesta confermata e assegnata al professionista scelto. Ora potrà accettarla o rifiutarla dalla sua dashboard.":"Richiesta inviata correttamente. Parti Bene individuerà professionisti compatibili, senza obbligo di acquisto.";
  }catch(error){message.textContent=error.message;message.style.background="#fff1ef";message.style.color="#913428";}
  finally{button.disabled=false;button.textContent="Conferma il mio Travel Match";message.scrollIntoView({behavior:"smooth",block:"center"});}
