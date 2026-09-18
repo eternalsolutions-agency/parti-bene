@@ -11,7 +11,7 @@ function adminClient(req) {
   // Appwrite exposes the dynamic server key as an execution header and, in
   // current runtimes, as APPWRITE_FUNCTION_API_KEY. Prefer the environment
   // variable because Console executions may not surface the header uniformly.
-  const key = process.env.APPWRITE_FUNCTION_API_KEY || req.headers["x-appwrite-key"];
+  const key = process.env.PARTI_BENE_SERVER_API_KEY || process.env.APPWRITE_FUNCTION_API_KEY || req.headers["x-appwrite-key"];
   if (!key) throw new Error("Chiave server Appwrite non disponibile per questa esecuzione.");
   return new Client().setEndpoint(endpoint).setProject(project).setKey(key);
 }
@@ -199,7 +199,7 @@ export default async ({ req, res, error }) => {
       causeMessage: cause?.message || null,
       causeCode: cause?.code || null,
       endpoint: process.env.APPWRITE_FUNCTION_API_ENDPOINT || null,
-      hasDynamicKey: Boolean(process.env.APPWRITE_FUNCTION_API_KEY || req.headers["x-appwrite-key"]),
+      hasDynamicKey: Boolean(process.env.PARTI_BENE_SERVER_API_KEY || process.env.APPWRITE_FUNCTION_API_KEY || req.headers["x-appwrite-key"]),
       hasProjectId: Boolean(process.env.APPWRITE_FUNCTION_PROJECT_ID)
     };
     error(JSON.stringify(diagnostic));
