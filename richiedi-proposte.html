@@ -6,21 +6,23 @@
 <meta name="theme-color" content="#062e59">
 <link rel="icon" type="image/png" href="logo-parti-bene.png">
 <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="claims.css"><link rel="stylesheet" href="proposal.css">
-<title>Ricevi fino a 3 proposte | Parti Bene</title>
+<title>Travel Match | Parti Bene</title>
 <script src="effects.js" defer></script>
 </head>
 <body>
-<div class="topbar">Richieste senza obbligo d’acquisto</div>
+<div class="topbar">Travel Match · richieste qualificate</div>
 <header><div class="container nav">
 <a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
-<nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a><a href="sei-un-agenzia.html">Sei un’agenzia?</a><a href="sei-un-consulente.html">Sei un consulente?</a></nav>
+<nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a><a href="per-professionisti.html">Per i professionisti</a></nav>
 <div class="actions"><a class="btn btn-ghost" href="accedi.html">Accedi</a><a class="btn btn-primary" href="area-professionisti.html">Iscriviti gratis</a></div>
 </div></header>
 <main>
-<section class="page-hero"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a> / Ricevi proposte</div><div class="kicker">Una richiesta, più possibilità</div><h1>Raccontaci il viaggio che immagini</h1><p class="hero-copy">Raccogliamo le informazioni essenziali per individuare fino a tre agenzie o consulenti compatibili con le tue esigenze.</p></div></section>
+<section class="page-hero"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a> / Travel Match</div><div class="kicker">Il tuo Travel Match</div><h1>Raccontaci il viaggio che immagini</h1><p class="hero-copy">Usiamo le informazioni che ci hai dato per costruire una richiesta qualificata e individuare professionisti compatibili con il tuo viaggio.</p></div></section>
 <section style="padding-top:46px"><div class="container request-layout">
 <div class="panel">
-<div class="kicker">Richiesta di viaggio</div><h2>Costruiamo il punto di partenza</h2><p class="section-copy">Non è una prenotazione e non comporta obblighi di acquisto.</p>
+<div class="kicker">Conferma Travel Match</div><h2>Il tuo viaggio, pronto per il professionista</h2><p class="section-copy">Controlla le informazioni raccolte e conferma la richiesta. Non comporta obblighi di acquisto.</p>
+<div id="selectedProfessional" class="selected-professional" hidden><span>Hai scelto</span><strong id="selectedProfessionalName"></strong><small>La richiesta verrà indirizzata prioritariamente a questo professionista.</small></div>
+<div id="briefSummary" class="brief-summary" hidden></div>
 <div class="request-progress"><span class="active"></span><span class="active"></span><span class="active"></span></div>
 <form id="proposalForm" class="form-grid">
 <div class="form-field full"><label>Che tipo di viaggio desideri? *</label><div class="choice-grid">
@@ -43,21 +45,23 @@
 <div class="choice"><input id="online" type="radio" name="assistance" value="Online"><label for="online">Consulenza online</label></div>
 <div class="choice"><input id="either" type="radio" name="assistance" value="Indifferente" checked><label for="either">È indifferente</label></div>
 </div></div>
+<div class="form-field full"><label>A che punto sei?</label><select name="intent"><option value="">Seleziona</option><option value="Alta">Pronto a prenotare</option><option value="Media">Sto scegliendo</option><option value="Bassa">Raccolgo informazioni</option><option value="Ispirazione">Cerco ispirazione</option></select></div>
+<div class="form-field full"><label>Modalità della consulenza</label><div class="choice-grid"><div class="choice"><input id="paidConsult" type="radio" name="consultation_mode" value="paid"><label for="paidConsult">Consulenza professionale a pagamento</label></div><div class="choice"><input id="freeConsult" type="radio" name="consultation_mode" value="free"><label for="freeConsult">Primo contatto gratuito</label></div></div><div class="safe-note" id="feeNotice">La tariffa indicativa viene definita dal Travel Match. Se confermi la proposta, l’importo viene scalato. Se nessun professionista accetta una richiesta pagata, è previsto il rimborso integrale.</div><input type="hidden" name="consultation_fee"></div>
 <div class="form-field full"><label>Esigenze e preferenze</label><textarea name="details" rows="5" placeholder="Descrivi stile di viaggio, sistemazione, attività, esigenze alimentari, accessibilità o altre informazioni utili"></textarea></div>
 <div class="form-field"><label>Nome e cognome *</label><input name="name" required autocomplete="name"></div>
 <div class="form-field"><label>Telefono *</label><input name="phone" type="tel" required autocomplete="tel"></div>
 <div class="form-field full"><label>Email *</label><input name="email" type="email" required autocomplete="email"></div>
 <label class="consent-line form-field full"><input type="checkbox" required><span>Accetto l’informativa privacy e autorizzo Parti Bene a utilizzare questi dati per individuare e contattare professionisti compatibili.</span></label>
-<button class="btn btn-primary form-field full" type="submit">Richiedi fino a 3 proposte</button>
+<button class="btn btn-primary form-field full" type="submit">Conferma il mio Travel Match</button>
 </form>
-<div id="proposalMessage" class="notice form-message">Compila il modulo: la richiesta sarà salvata in modo riservato e inoltrata fino a tre professionisti compatibili.</div>
+<div id="proposalMessage" class="notice form-message">Controlla i dati del Travel Match prima di inviare la richiesta.</div>
 </div>
-<aside class="panel request-aside"><div class="kicker">Come funziona</div><h3>Una richiesta, fino a tre risposte</h3><div class="request-summary">
+<aside class="panel request-aside"><div class="kicker">Come funziona</div><h3>Una richiesta, professionisti compatibili</h3><div class="request-summary">
 <div class="summary-row"><span>1. Descrivi</span><strong>Il viaggio che desideri</strong></div>
 <div class="summary-row"><span>2. Abbiniamo</span><strong>Professionisti compatibili</strong></div>
-<div class="summary-row"><span>3. Confronti</span><strong>Fino a tre proposte</strong></div>
+<div class="summary-row"><span>3. Confronti</span><strong>Professionisti compatibili</strong></div>
 <div class="summary-row"><span>4. Scegli</span><strong>Senza obbligo d’acquisto</strong></div>
-</div><div class="safe-note">Preventivo definitivo, contratto e pagamento saranno gestiti direttamente dal professionista scelto. Parti Bene non vende il viaggio nella prima versione.</div><a class="btn btn-ghost" href="professionisti.html" style="width:100%;margin-top:14px">Preferisci scegliere direttamente?</a></aside>
+</div><div class="safe-note">La modalità gratuita o a pagamento scelta dal viaggiatore verrà incrociata con le preferenze dei professionisti. Il pagamento online sarà attivato nella fase dedicata ai pagamenti.</div><a class="btn btn-ghost" href="professionisti.html" style="width:100%;margin-top:14px">Preferisci scegliere direttamente?</a></aside>
 </div></section>
 </main>
 <footer><div class="container"><div class="footer-grid">
@@ -69,6 +73,17 @@
 <script type="module">
 import { APPWRITE_CONFIG, ID } from "./appwrite-config.js";
 const form=document.getElementById("proposalForm"),destination=document.getElementById("tripDestination"),period=document.getElementById("tripPeriod"),budget=document.getElementById("tripBudget");
+const params=new URLSearchParams(location.search);
+const selectedSlug=params.get("professionista");
+let travelBrief={};try{travelBrief=JSON.parse(sessionStorage.getItem("partiBeneTravelMatch")||"{}");}catch(_){}
+const isTravelMatch=params.get("travelmatch")==="1" || Object.keys(travelBrief).length>0;
+function briefValue(key){return travelBrief[key]??params.get(key);}
+if(selectedSlug){const box=document.getElementById("selectedProfessional");box.hidden=false;document.getElementById("selectedProfessionalName").textContent=selectedSlug.replace(/-/g," ").replace(/\b\w/g,x=>x.toUpperCase());}
+const briefItems=[["Destinazione",briefValue("destination")],["Viaggio",briefValue("trip_type")],["Periodo",briefValue("period")],["Partenza",briefValue("departure")],["Budget",briefValue("budget")],["Assistenza",briefValue("assistance")],["Consulenza",briefValue("consultation_mode")==="paid"?"Professionale · €"+(briefValue("consultation_fee")||""):(briefValue("consultation_mode")==="free"?"Primo contatto gratuito":null)]].filter(x=>x[1]);
+if(briefItems.length){const summary=document.getElementById("briefSummary");summary.hidden=false;summary.innerHTML=briefItems.map(([k,v])=>'<div><span>'+k+'</span><strong>'+String(v).replace(/[<>&"]/g,"")+'</strong></div>').join("");}
+
+if(isTravelMatch){["destination","departure","period","adults","children","budget","assistance","intent","consultation_mode","consultation_fee"].forEach(key=>{const el=form.elements[key];const value=briefValue(key);if(!el||value===null)return;if(el instanceof RadioNodeList){const radio=[...form.querySelectorAll('[name="'+key+'"]')].find(r=>r.value===value);if(radio)radio.checked=true;}else el.value=value;});const type=briefValue("trip_type");if(type){const radio=[...form.querySelectorAll('[name="trip_type"]')].find(r=>r.value===type);if(radio)radio.checked=true;}const fee=briefValue("consultation_fee");if(fee)document.getElementById("feeNotice").textContent="Consulenza professionale: "+fee+" €. Se confermi la proposta, l’importo viene scalato. Se nessun professionista accetta la richiesta pagata, è previsto il rimborso integrale.";}
+
 function updateSummary(){const d=destination.value.trim(),p=period.value.trim(),b=budget.value;document.title=(d?"Viaggio "+d+" | ":"")+"Parti Bene";}
 [destination,period,budget].forEach(el=>el.addEventListener("input",updateSummary));
 form.addEventListener("submit",async function(e){
@@ -86,23 +101,39 @@ form.addEventListener("submit",async function(e){
    durata:String(data.get("duration")||"").trim()||null,
    budget:String(data.get("budget")||"").trim()||null,
    assistenza:String(data.get("assistance")),
-   dettagli:String(data.get("details")||"").trim()||null,
+   // I campi Travel Match aggiuntivi vengono serializzati nei dettagli finché lo schema Appwrite non viene esteso.
+
+   dettagli:[String(data.get("details")||"").trim(),data.get("intent")?"Intento: "+data.get("intent"):"",data.get("consultation_mode")?"Consulenza: "+data.get("consultation_mode"):"",data.get("consultation_fee")?"Tariffa: €"+data.get("consultation_fee"):""].filter(Boolean).join(" | ")||null,
    nome_cliente:String(data.get("name")).trim(),
    telefono:String(data.get("phone")).trim(),
    email:String(data.get("email")).trim(),
-   professionista_preferito:new URLSearchParams(location.search).get("professionista")||null,
+   professionista_preferito:selectedSlug||null,
    stato:"nuova",numero_assegnazioni:0,privacy_accettata:true
   };
   Object.keys(payload).forEach(key=>{if(payload[key]===null)delete payload[key];});
-  const response=await fetch(APPWRITE_CONFIG.endpoint+"/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.travelRequestsTableId+"/rows",{
-   method:"POST",headers:{"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"},
-   body:JSON.stringify({rowId:ID.unique(),data:payload,permissions:[]})
+  const functionResponse=await fetch(APPWRITE_CONFIG.endpoint+"/functions/"+APPWRITE_CONFIG.travelRequestFunctionId+"/executions",{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "X-Appwrite-Project":APPWRITE_CONFIG.projectId,
+    "X-Appwrite-Response-Format":"1.8.0"
+   },
+   body:JSON.stringify({
+    body:JSON.stringify({action:"create",request:payload}),
+    async:false,
+    path:"/",
+    method:"POST",
+    headers:{"content-type":"application/json"}
+   })
   });
-  const result=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(result.message||"Non è stato possibile inviare la richiesta.");
-  form.reset();message.textContent="Richiesta inviata correttamente. Parti Bene selezionerà fino a tre professionisti compatibili, che potranno contattarti senza alcun obbligo di acquisto.";
+  const execution=await functionResponse.json().catch(()=>({}));
+  if(!functionResponse.ok)throw new Error(execution.message||"Non è stato possibile eseguire la richiesta.");
+  const result=JSON.parse(execution.responseBody||"{}");
+  if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Non è stato possibile inviare la richiesta.");
+  if(selectedSlug&&!result.assigned)throw new Error("La richiesta è stata salvata, ma non è stato possibile assegnarla automaticamente al professionista scelto.");
+  form.reset();message.textContent=selectedSlug?"Richiesta confermata e assegnata al professionista scelto. Ora potrà accettarla o rifiutarla dalla sua dashboard.":"Richiesta inviata correttamente. Parti Bene individuerà professionisti compatibili, senza obbligo di acquisto.";
  }catch(error){message.textContent=error.message;message.style.background="#fff1ef";message.style.color="#913428";}
- finally{button.disabled=false;button.textContent="Richiedi fino a 3 proposte";message.scrollIntoView({behavior:"smooth",block:"center"});}
+ finally{button.disabled=false;button.textContent="Conferma il mio Travel Match";message.scrollIntoView({behavior:"smooth",block:"center"});}
 });
 </script>
 </body></html>

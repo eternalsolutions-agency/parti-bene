@@ -123,14 +123,9 @@ async function updateRequest(row,status,notes){
 async function linkExistingProfile(row,profileId){
  if(!profileId)throw new Error("Seleziona prima il profilo pubblico da collegare.");
  if(!row.utente_id)throw new Error("La richiesta non contiene l’ID dell’utente.");
- const permissions=[
-  Permission.read(Role.any()),
-  Permission.update(Role.user(row.utente_id)),
-  Permission.update(Role.label("admin")),
-  Permission.delete(Role.label("admin"))
- ];
+
  return api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+profileId,{
-  method:"PATCH",body:{data:{utente_id:row.utente_id},permissions}
+  method:"PATCH",body:{data:{utente_id:row.utente_id}}
  });
 }
 async function approve(row,notes){
@@ -145,21 +140,16 @@ async function approve(row,notes){
   stato:"pubblicato",data_approvazione:new Date().toISOString()
  };
  Object.keys(professionalData).forEach(key=>{if(professionalData[key]===null||professionalData[key]===undefined||professionalData[key]==="")delete professionalData[key];});
- const permissions=[
-  Permission.read(Role.any()),
-  Permission.update(Role.user(row.utente_id)),
-  Permission.update(Role.label("admin")),
-  Permission.delete(Role.label("admin"))
- ];
+
  const listed=await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows");
  const existing=(listed.rows||[]).find(item=>item.utente_id===row.utente_id||(!item.utente_id&&item.nome===row.nome_attivita));
  if(existing){
   await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+existing.$id,{
-   method:"PATCH",body:{data:professionalData,permissions}
+   method:"PATCH",body:{data:professionalData}
   });
  }else{
   await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows",{
-   method:"POST",body:{rowId:ID.unique(),data:professionalData,permissions}
+   method:"POST",body:{rowId:ID.unique(),data:professionalData}
   });
  }
  await updateRequest(row,"approvata",notes);

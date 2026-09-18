@@ -48,6 +48,7 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 .offer-form-actions{display:flex;gap:10px}
 .offer-state{display:inline-flex;margin-top:9px;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;background:var(--orange-soft);color:var(--orange-dark)}
 .client-request-list{display:grid;gap:14px;margin-top:24px}.client-request-card{border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:17px;padding:19px;background:#fff}.client-request-card h3{margin:0;color:var(--navy)}.request-meta{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.request-meta span{background:var(--soft);border-radius:999px;padding:6px 9px;font-size:12px;font-weight:750}.request-contact{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.request-contact div{background:var(--orange-soft);border-radius:12px;padding:11px;font-size:13px}.response-form{margin-top:17px;padding-top:17px;border-top:1px solid var(--line)}
+.request-summary{margin-top:14px;padding:14px;border-radius:14px;background:var(--soft);border:1px solid var(--line)}.request-summary strong{display:block;color:var(--navy);margin-bottom:6px}.request-summary p{margin:0;white-space:pre-wrap}.request-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}.request-tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font-weight:850;cursor:pointer}.request-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}.request-counters{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.request-counter{background:var(--soft);border-radius:12px;padding:10px 13px;font-size:13px}.request-counter strong{color:var(--navy);font-size:18px;margin-right:5px}.request-answered{border-left-color:#20a57a}.request-answered .offer-state{background:#e6f8f4;color:#17705f}.request-details-toggle{margin-top:12px}.request-date{font-size:12px;color:var(--muted);margin-top:8px}
 @media(max-width:850px){.dashboard-grid{grid-template-columns:1fr}.dashboard-sidebar{position:static}.dashboard-cards{grid-template-columns:1fr}}
 @media(max-width:620px){.detail-grid,.dashboard-media{grid-template-columns:1fr}.dashboard-media img{height:190px}}
 </style>
@@ -131,6 +132,7 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 <div class="form-field full"><label>Specializzazioni</label><input name="specializzazioni" placeholder="Es. viaggi di nozze, crociere, famiglie"><small class="meta">Separa le voci con una virgola.</small></div>
 <div class="form-field full"><label>Destinazioni principali</label><input name="destinazioni" placeholder="Es. Giappone, Maldive, Stati Uniti"><small class="meta">Separa le destinazioni con una virgola.</small></div>
 <label class="consent-line form-field full"><input name="disponibile_online" type="checkbox"><span>Disponibile per consulenze online</span></label>
+<div class="form-field full"><label>Richieste Travel Match</label><select name="request_preference"><option value="both">Gratuite e professionali</option><option value="free">Solo primo contatto gratuito</option><option value="paid">Solo consulenze professionali</option></select><small class="meta">Questa impostazione verrà usata dal matching automatico non appena il campo dedicato sarà attivato in Appwrite.</small></div>
 <button id="saveProfileButton" class="btn btn-primary form-field full" type="submit">Salva le modifiche</button>
 </form>
 <div id="profileMessage" class="notice" role="status" aria-live="polite" hidden></div>
@@ -157,7 +159,7 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 </div>
 <div id="clientRequestsPanel" class="panel dashboard-view view-ready" data-dashboard-view="requests">
 <div class="kicker">Richieste clienti</div><h2 style="font-size:32px">Viaggiatori compatibili con te</h2>
-<p class="section-copy">Visualizzi esclusivamente le richieste assegnate al tuo account.</p>
+<p class="section-copy">Visualizzi esclusivamente le richieste assegnate al tuo account.</p><div id="requestCounters" class="request-counters"></div><div class="request-tabs"><button class="request-tab active" type="button" data-request-filter="todo">Da gestire</button><button class="request-tab" type="button" data-request-filter="answered">Risposte</button><button class="request-tab" type="button" data-request-filter="all">Tutte</button></div>
 <div id="clientRequestsList" class="client-request-list"><div class="notice">Caricamento delle richieste…</div></div>
 </div>
 <div id="headquartersMessagesPanel" class="panel dashboard-view view-ready" data-dashboard-view="messages">
@@ -171,7 +173,7 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 
 <footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>Area protetta da Appwrite</span></div></div></footer>
 <script type="module">
-import { APPWRITE_CONFIG, account, storage, ID, Permission, Role, readableError } from "./appwrite-config.js";
+import { APPWRITE_CONFIG, account, storage, functions, ID, Permission, Role, readableError } from "./appwrite-config.js";
 
 const statusLabels = {
   in_attesa: ["In attesa", "status-pending", "La richiesta è stata ricevuta ed è in attesa del controllo di Parti Bene."],
@@ -214,39 +216,31 @@ function fileUrl(fileId) {
   if (!fileId) return null;
   return storage.getFileView({ bucketId: APPWRITE_CONFIG.mediaBucketId, fileId });
 }
-async function listMyRequests() {
-  const response = await fetch(
-    APPWRITE_CONFIG.endpoint + "/tablesdb/" + APPWRITE_CONFIG.databaseId +
-    "/tables/" + APPWRITE_CONFIG.applicationsTableId + "/rows",
-    {
-      credentials: "include",
-      headers: {
-        "X-Appwrite-Project": APPWRITE_CONFIG.projectId,
-        "X-Appwrite-Response-Format": "1.8.0"
-      }
-    }
-  );
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(result.message || "Impossibile caricare la richiesta.");
-  return (result.rows || []).sort((a,b) => new Date(b.$createdAt) - new Date(a.$createdAt));
+async function listMyRequests(userId) {
+  // Appwrite listRows requires table-level READ. Our applications table is
+  // intentionally private, so the professional dashboard reads the row ID
+  // saved at signup and falls back to the public profile for approved users.
+  const applicationId = localStorage.getItem("partiBeneApplicationId");
+  if (!applicationId) return [];
+  try {
+    const result = await profileApi(
+      "/tablesdb/" + APPWRITE_CONFIG.databaseId +
+      "/tables/" + APPWRITE_CONFIG.applicationsTableId + "/rows/" +
+      encodeURIComponent(applicationId)
+    );
+    return result.utente_id === userId ? [result] : [];
+  } catch (error) {
+    if (error.code === 404 || error.code === 401) return [];
+    throw error;
+  }
 }
 async function loadOwnedProfile(user, application) {
-  const result=await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows");
-  const rows=result.rows||[];
-  currentProfile=rows.find(row=>row.utente_id===user.$id)||null;
-  if(!currentProfile && (user.labels||[]).includes("admin")){
-    const legacyProfile=rows.find(row=>row.nome===application.nome_attivita);
-    if(legacyProfile){
-      const permissions=[
-        Permission.read(Role.any()),
-        Permission.update(Role.user(user.$id)),
-        Permission.update(Role.label("admin")),
-        Permission.delete(Role.label("admin"))
-      ];
-      currentProfile=await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+legacyProfile.$id,{
-        method:"PATCH",body:{data:{utente_id:user.$id},permissions}
-      });
-    }
+  try {
+    const result=await travelRequestFunction("my-profile");
+    currentProfile=result.profile||null;
+  } catch (error) {
+    if (/non trovato/i.test(error.message||"")) currentProfile=null;
+    else throw error;
   }
   if(!currentProfile){
     document.getElementById("profileLinkNotice").hidden=false;
@@ -262,11 +256,11 @@ async function loadOwnedProfile(user, application) {
   profileForm.elements.descrizione.value=currentProfile.descrizione||"";
   profileForm.elements.specializzazioni.value=(currentProfile.specializzazioni||[]).join(", ");
   profileForm.elements.destinazioni.value=(currentProfile.destinazioni||[]).join(", ");
-  profileForm.elements.disponibile_online.checked=Boolean(currentProfile.disponibile_online);
+  profileForm.elements.disponibile_online.checked=Boolean(currentProfile.disponibile_online); const prefMatch=String(currentProfile.descrizione||"").match(/\[Preferenza richieste: (free|paid|both)\]/); profileForm.elements.request_preference.value=prefMatch?prefMatch[1]:"both";
   document.getElementById("publicProfileLink").href="profilo.html?slug="+encodeURIComponent(currentProfile.slug);
   offersManager.hidden=false;
   offersManager.classList.add("view-ready");
-  await Promise.all([loadMyOffers(user.$id),loadClientRequests(user.$id)]);
+  await loadMyOffers(user.$id);
 }
 function renderRequest(row) {
   document.getElementById("loadingPanel").hidden = true;
@@ -299,22 +293,102 @@ function renderRequest(row) {
     document.getElementById("mediaGrid").innerHTML = files.map(file => '<img src="'+fileUrl(file.id)+'" alt="'+file.alt+'">').join("");
   }
 }
+async function travelRequestFunction(action,payload={}){
+ const execution=await functions.createExecution({
+  functionId:APPWRITE_CONFIG.travelRequestFunctionId,
+  body:JSON.stringify({action,...payload}),
+  async:false,
+  path:"/",
+  method:"POST",
+  headers:{"content-type":"application/json"}
+ });
+ const result=JSON.parse(execution.responseBody||"{}");
+ if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Operazione non riuscita.");
+ return result;
+}
+async function loadClientRequests(){
+ try{
+  const result=await travelRequestFunction("list");
+  assignedRequests=result.items||[];
+  renderClientRequests();
+ }catch(error){clientRequestsList.innerHTML='<div class="notice">'+escapeOffer(error.message||readableError(error))+'</div>';}
+}
+let requestFilter="todo";
+function formatRequestDate(value){
+ if(!value)return "";
+ const date=new Date(value);if(Number.isNaN(date.getTime()))return "";
+ return new Intl.DateTimeFormat("it-IT",{dateStyle:"short",timeStyle:"short"}).format(date);
+}
+function renderRequestCounters(){
+ const counts={nuova:0,accettata:0,risposta:0};
+ assignedRequests.forEach(({assignment})=>{if(counts[assignment.stato]!==undefined)counts[assignment.stato]++;});
+ document.getElementById("requestCounters").innerHTML='<span class="request-counter"><strong>'+counts.nuova+'</strong> Nuove</span><span class="request-counter"><strong>'+counts.accettata+'</strong> Accettate</span><span class="request-counter"><strong>'+counts.risposta+'</strong> Risposte</span>';
+}
+function renderClientRequests(){
+ renderRequestCounters();
+ const visible=assignedRequests.filter(({assignment})=>requestFilter==="all"||(requestFilter==="answered"?assignment.stato==="risposta":assignment.stato!=="risposta"));
+ clientRequestsList.innerHTML=visible.length?visible.map(({assignment,request})=>{
+  const accepted=["accettata","risposta"].includes(assignment.stato),answered=assignment.stato==="risposta";
+  const contact=accepted?'<div class="request-contact"><div><strong>'+escapeOffer(request.nome_cliente||"")+'</strong><br>'+escapeOffer(request.email||"")+'</div><div><strong>Telefono</strong><br>'+escapeOffer(request.telefono||"")+'</div></div>':'<div class="notice">I contatti del viaggiatore saranno visibili dopo aver accettato la richiesta.</div>';
+  const customerSummary='<div class="request-summary"><strong>Richiesta del cliente</strong><p>'+escapeOffer(request.dettagli||"Nessuna preferenza aggiuntiva.")+'</p></div>';
+  const answeredSummary=answered?'<div class="request-summary"><strong>La tua risposta</strong><p>'+escapeOffer(assignment.messaggio_professionista||"Nessun messaggio inserito.")+'</p>'+(assignment.proposta_economica!==null&&assignment.proposta_economica!==undefined?'<div class="request-date"><strong style="display:inline">Proposta indicativa:</strong> € '+escapeOffer(assignment.proposta_economica)+'</div>':'')+'<div class="request-date">Risposto il: '+escapeOffer(formatRequestDate(assignment.data_risposta))+'</div></div>':'';
+  const responseForm=assignment.stato==="accettata"?'<form class="response-form form-grid" data-response="'+assignment.$id+'"><div class="form-field"><label>Prima indicazione economica (€)</label><input name="price" type="number" min="0" value="'+escapeOffer(assignment.proposta_economica||"")+'"></div><div class="form-field"><label>Messaggio al cliente</label><textarea name="message" rows="3">'+escapeOffer(assignment.messaggio_professionista||"")+'</textarea></div><button class="btn btn-primary form-field full" type="submit">Invia risposta</button></form>':'';
+  const statusLabel={nuova:"Nuova",accettata:"Accettata",rifiutata:"Rifiutata",risposta:"Risposta"}[assignment.stato]||assignment.stato;
+  return '<article class="client-request-card '+(answered?"request-answered":"")+'"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><div class="kicker">'+escapeOffer(request.tipologia_viaggio)+'</div><h3>'+escapeOffer(request.destinazione)+'</h3></div><span class="offer-state">'+escapeOffer(statusLabel)+'</span></div><div class="request-meta"><span>'+escapeOffer(request.periodo)+'</span><span>'+escapeOffer(request.adulti)+' adulti</span><span>'+escapeOffer(request.bambini||0)+' bambini</span><span>'+escapeOffer(request.budget||"Budget non indicato")+'</span></div>'+customerSummary+contact+'<div class="request-decision" data-decision="'+assignment.$id+'">'+(assignment.stato==="nuova"?'<button class="btn btn-primary" type="button" data-accept="'+assignment.$id+'">Accetta richiesta</button><button class="btn btn-ghost" type="button" data-refuse="'+assignment.$id+'">Rifiuta</button>':'')+'</div>'+answeredSummary+responseForm+'</article>';
+ }).join(""):'<div class="notice">'+(requestFilter==="answered"?"Non hai ancora risposte inviate.":requestFilter==="todo"?"Non ci sono richieste da gestire.":"Non hai ancora ricevuto richieste compatibili.")+'</div>';
+}
+document.querySelectorAll("[data-request-filter]").forEach(button=>button.addEventListener("click",()=>{
+ requestFilter=button.dataset.requestFilter;
+ document.querySelectorAll("[data-request-filter]").forEach(item=>item.classList.toggle("active",item===button));
+ renderClientRequests();
+}));
+clientRequestsList.addEventListener("click",async event=>{
+ const accept=event.target.closest("[data-accept]"),refuse=event.target.closest("[data-refuse]");if(!accept&&!refuse)return;
+ const id=accept?.dataset.accept||refuse?.dataset.refuse,item=assignedRequests.find(entry=>entry.assignment.$id===id);if(!item)return;
+ let message=null;if(refuse){message=prompt("Perché vuoi rifiutare la richiesta? (es. budget, date, destinazione, disponibilità, target non compatibile)");if(message===null)return;message=message.trim()||"Richiesta non compatibile";}
+ const button=accept||refuse;button.disabled=true;
+ try{
+  const result=await travelRequestFunction("update",{assignmentId:id,status:accept?"accettata":"rifiutata",message});
+  item.assignment=result.assignment;
+  if(result.request)item.request=result.request;
+  renderClientRequests();
+ }catch(error){alert(error.message||readableError(error));button.disabled=false;}
+});
+clientRequestsList.addEventListener("submit",async event=>{
+ const form=event.target.closest("[data-response]");if(!form)return;event.preventDefault();
+ const item=assignedRequests.find(entry=>entry.assignment.$id===form.dataset.response);if(!item)return;
+ const data=new FormData(form),button=form.querySelector("button");button.disabled=true;button.textContent="Salvataggio…";
+ try{
+  const result=await travelRequestFunction("update",{assignmentId:item.assignment.$id,status:"risposta",message:String(data.get("message")||"").trim(),price:String(data.get("price")||"")});
+  item.assignment=result.assignment;if(result.request)item.request=result.request;renderClientRequests();
+ }catch(error){alert(error.message||readableError(error));}
+ finally{button.disabled=false;button.textContent="Salva la risposta";}
+});
+
+
 try {
   const user = await account.get();
   setText("userName", user.name, "Professionista");
   setText("userEmail", user.email);
   document.getElementById("userAvatar").textContent = (user.name || "PB").split(" ").map(part => part[0]).slice(0,2).join("").toUpperCase();
   document.getElementById("adminLink").hidden = !(user.labels || []).includes("admin");
-  const requests = await listMyRequests();
+  const requests = await listMyRequests(user.$id);
   if (requests.length) {
     renderRequest(requests[0]);
     if (requests[0].stato === "approvata") await loadOwnedProfile(user, requests[0]);
-  }
-  else {
+  } else {
+    // Approved professionals may not have the application row ID in this
+    // browser (older signup/test accounts). Load the owned public profile
+    // without trying to enumerate the private applications table.
+    await loadOwnedProfile(user, null);
     document.getElementById("loadingPanel").hidden = true;
-    document.getElementById("emptyPanel").hidden = false;
-    document.getElementById("emptyPanel").classList.add("view-ready");
+    if (!currentProfile) {
+      document.getElementById("emptyPanel").hidden = false;
+      document.getElementById("emptyPanel").classList.add("view-ready");
+    }
   }
+  await loadClientRequests();
+  document.getElementById("loadingPanel").hidden = true;
 } catch (error) {
   try { await account.get(); }
   catch (_) { location.replace("accedi.html?redirect=dashboard.html"); }
@@ -322,32 +396,6 @@ try {
 }
 
 
-async function loadClientRequests(userId){
- try{
-  const [assignmentResult,requestResult]=await Promise.all([
-   profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.requestAssignmentsTableId+"/rows"),
-   profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.travelRequestsTableId+"/rows")
-  ]);
-  const requests=requestResult.rows||[];
-  assignedRequests=(assignmentResult.rows||[]).filter(row=>row.utente_id===userId).map(assignment=>({assignment,request:requests.find(row=>row.$id===assignment.richiesta_id)})).filter(item=>item.request);
-  renderClientRequests();
- }catch(error){clientRequestsList.innerHTML='<div class="notice">'+escapeOffer(readableError(error))+'</div>';}
-}
-function renderClientRequests(){
- clientRequestsList.innerHTML=assignedRequests.length?assignedRequests.map(({assignment,request})=>'<article class="client-request-card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><div class="kicker">'+escapeOffer(request.tipologia_viaggio)+'</div><h3>'+escapeOffer(request.destinazione)+'</h3></div><span class="offer-state">'+escapeOffer(assignment.stato)+'</span></div><div class="request-meta"><span>'+escapeOffer(request.periodo)+'</span><span>'+escapeOffer(request.adulti)+' adulti</span><span>'+escapeOffer(request.bambini||0)+' bambini</span><span>'+escapeOffer(request.budget||"Budget non indicato")+'</span></div><p>'+escapeOffer(request.dettagli||"Nessuna preferenza aggiuntiva.")+'</p><div class="request-contact"><div><strong>'+escapeOffer(request.nome_cliente)+'</strong><br>'+escapeOffer(request.email)+'</div><div><strong>Telefono</strong><br>'+escapeOffer(request.telefono)+'</div></div><form class="response-form form-grid" data-response="'+assignment.$id+'"><div class="form-field"><label>Prima indicazione economica (€)</label><input name="price" type="number" min="0" value="'+escapeOffer(assignment.proposta_economica||"")+'"></div><div class="form-field"><label>Messaggio al cliente</label><textarea name="message" rows="3">'+escapeOffer(assignment.messaggio_professionista||"")+'</textarea></div><button class="btn btn-primary form-field full" type="submit">Salva la risposta</button></form></article>').join(""):'<div class="notice">Non hai ancora ricevuto richieste compatibili.</div>';
-}
-clientRequestsList.addEventListener("submit",async event=>{
- const form=event.target.closest("[data-response]");if(!form)return;event.preventDefault();
- const item=assignedRequests.find(entry=>entry.assignment.$id===form.dataset.response);if(!item)return;
- const data=new FormData(form),button=form.querySelector("button");button.disabled=true;button.textContent="Salvataggio…";
- try{
-  const update={stato:"risposta",letta:true,messaggio_professionista:String(data.get("message")||"").trim()||null,proposta_economica:Number(data.get("price")||0)||null,data_risposta:new Date().toISOString()};
-  Object.keys(update).forEach(key=>{if(update[key]===null)delete update[key];});
-  await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.requestAssignmentsTableId+"/rows/"+item.assignment.$id,{method:"PATCH",body:{data:update}});
-  Object.assign(item.assignment,update);renderClientRequests();
- }catch(error){alert(readableError(error));}
- finally{button.disabled=false;button.textContent="Salva la risposta";}
-});
 
 function offerPermissions(userId,status){
  const permissions=[Permission.read(Role.user(userId)),Permission.update(Role.user(userId)),Permission.delete(Role.user(userId)),Permission.update(Role.label("admin")),Permission.delete(Role.label("admin"))];
@@ -438,8 +486,8 @@ profileForm.addEventListener("submit",async event=>{
       destinazioni:commaList(data.get("destinazioni")),
       disponibile_online:Boolean(data.get("disponibile_online"))
     };
-    await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+currentProfile.$id,{method:"PATCH",body:{data:update}});
-    currentProfile={...currentProfile,...update};
+    const saved=await travelRequestFunction("update-profile",{profile:update});
+    currentProfile=saved.profile||{...currentProfile,...update};
     profileMessage.textContent="Profilo aggiornato correttamente.";
   }catch(error){
     profileMessage.textContent=readableError(error);

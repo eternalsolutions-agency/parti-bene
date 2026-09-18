@@ -22,7 +22,7 @@
         <a href="professionisti.html">Trova professionisti</a>
         <a href="offerte.html">Offerte</a>
         <a href="come-funziona.html">Come funziona</a>
-        <a href="sei-un-agenzia.html">Sei un’agenzia?</a><a href="sei-un-consulente.html">Sei un consulente?</a>
+        <a href="per-professionisti.html">Per i professionisti</a>
       </nav>
       <div class="actions">
         <a class="btn btn-ghost" href="accedi.html">Accedi</a>
@@ -32,41 +32,87 @@
   </header>
 
   <main>
-    <section class="hero">
+    <section class="hero travel-match-hero">
       <div class="hero-map" aria-hidden="true"></div>
       <div class="container">
-        <div class="eyebrow">● Persone vere, viaggi costruiti bene</div>
-        <h1>Il viaggio giusto parte dalla <span>persona giusta.</span></h1>
-        <p class="hero-copy">Cerca e confronta agenzie e consulenti di viaggio. Trova uno specialista vicino a te oppure ricevi assistenza online in tutta Italia.</p>
+        <div class="eyebrow">● PARTI BENE TRAVEL MATCH</div>
+        <h1>Raccontaci il viaggio. <span>Troviamo chi fa per te.</span></h1>
+        <p class="hero-copy">Non partire da una gara di preventivi. Rispondi a poche domande e PARTI BENE individua professionisti compatibili con destinazione, stile di viaggio, budget e modo in cui vuoi essere seguito.</p>
 
-        <form class="search-box" id="searchForm" action="professionisti.html">
-          <div class="field">
-            <label for="destination">Destinazione o viaggio</label>
-            <input id="destination" type="search" placeholder="Es. Giappone, crociera, Maldive">
-          </div>
-          <div class="field">
-            <label for="departure">Partenza da</label>
-            <input id="departure" type="text" placeholder="Città o CAP">
-          </div>
-          <div class="field">
-            <label for="assistance">Tipo di assistenza</label>
-            <select id="assistance">
-              <option value="all">Tutte le opzioni</option>
-              <option value="local">Vicino a me</option>
-              <option value="online">Online</option>
-            </select>
-          </div>
-          <button class="btn btn-primary search-submit" type="submit">Cerca</button>
-        </form>
+        <div class="match-wizard" id="matchWizard">
+          <div class="match-progress"><div id="matchProgressBar"></div></div>
+          <div class="match-step-label" id="matchStepLabel">Domanda 1 di 9</div>
 
-        <div class="geo-row">
-          <button class="btn btn-ghost" id="geoButton" type="button">◎ Usa la mia posizione</button>
-          <span class="geo-status" id="geoStatus">La posizione viene richiesta solo quando premi il pulsante.</span>
-        </div>
-        <div class="trust">
-          <span>Professionisti verificabili</span>
-          <span>Richieste senza obbligo d'acquisto</span>
-          <span>Consulenza in sede oppure online</span>
+          <form id="travelMatchForm">
+            <section class="match-step active" data-step="0">
+              <div class="match-question">Dove vuoi andare?</div>
+              <p>Scrivi una destinazione oppure dicci che vuoi ancora farti ispirare.</p>
+              <input class="match-input" name="destination" placeholder="Es. Giappone, Maldive, New York">
+              <label class="match-check"><input type="checkbox" name="undecided"> Non ho ancora deciso</label>
+            </section>
+            <section class="match-step" data-step="1">
+              <div class="match-question">Che tipo di viaggio immagini?</div>
+              <div class="match-options match-photo-options">
+                <button type="button" data-value="Viaggio su misura"><img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=500&q=80" alt=""><span>Su misura</span></button><button type="button" data-value="Mare"><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80" alt=""><span>Mare</span></button>
+                <button type="button" data-value="Viaggio di nozze"><img src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=500&q=80" alt=""><span>Nozze / coppia</span></button><button type="button" data-value="Famiglia"><img src="https://images.unsplash.com/photo-1504150558240-0b4fd8946624?auto=format&fit=crop&w=500&q=80" alt=""><span>Famiglia</span></button>
+                <button type="button" data-value="Crociera"><img src="https://images.unsplash.com/photo-1548574505-5e239809ee19?auto=format&fit=crop&w=500&q=80" alt=""><span>Crociera</span></button><button type="button" data-value="Tour"><img src="https://images.unsplash.com/photo-1489493585363-d69421e0edd3?auto=format&fit=crop&w=500&q=80" alt=""><span>Tour</span></button>
+                <button type="button" data-value="Luxury"><img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=80" alt=""><span>Luxury</span></button><button type="button" data-value="Business"><img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=500&q=80" alt=""><span>Business / Bleisure</span></button>
+              </div><input type="hidden" name="trip_type">
+            </section>
+            <section class="match-step" data-step="2">
+              <div class="match-question">Quando vorresti partire?</div>
+              <input class="match-input" name="period" placeholder="Es. ottobre 2026, estate 2027">
+              <label class="match-check"><input type="checkbox" name="flexible"> Le date sono flessibili</label>
+            </section>
+            <section class="match-step" data-step="3">
+              <div class="match-question">Con chi viaggi?</div>
+              <div class="match-two"><label>Adulti<input class="match-input" name="adults" type="number" min="1" value="2"></label><label>Bambini<input class="match-input" name="children" type="number" min="0" value="0"></label></div>
+              <input class="match-input" name="departure" placeholder="Da dove parti? Es. Roma">
+            </section>
+            <section class="match-step" data-step="4">
+              <div class="match-question">Qual è il budget indicativo?</div>
+              <div class="match-options single">
+                <button type="button" data-value="Fino a €1.500">Fino a €1.500</button><button type="button" data-value="€1.500–€3.000">€1.500–€3.000</button>
+                <button type="button" data-value="€3.000–€5.000">€3.000–€5.000</button><button type="button" data-value="€5.000–€10.000">€5.000–€10.000</button>
+                <button type="button" data-value="Oltre €10.000">Oltre €10.000</button><button type="button" data-value="Da definire">Da definire</button>
+              </div><input type="hidden" name="budget">
+            </section>
+            <section class="match-step" data-step="5">
+              <div class="match-question">A che punto sei?</div>
+              <div class="match-options single match-photo-options intent-photo-options">
+                <button type="button" data-value="Alta"><img src="https://images.unsplash.com/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=600&q=80" alt=""><span>Pronto a prenotare</span></button><button type="button" data-value="Media"><img src="https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=600&q=80" alt=""><span>Sto scegliendo</span></button>
+                <button type="button" data-value="Bassa"><img src="https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&w=600&q=80" alt=""><span>Raccolgo informazioni</span></button><button type="button" data-value="Ispirazione"><img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=600&q=80" alt=""><span>Cerco ispirazione</span></button>
+              </div><input type="hidden" name="intent">
+            </section>
+            <section class="match-step" data-step="6">
+              <div class="match-question">Come vuoi essere seguito?</div>
+              <div class="match-options single assistance-options">
+                <button type="button" data-value="In sede"><span class="line-icon">⌂</span><span>In agenzia</span></button><button type="button" data-value="Online"><span class="line-icon">▣</span><span>Videochiamata</span></button>
+                <button type="button" data-value="Telefono"><span class="line-icon">◖</span><span>Telefono</span></button><button type="button" data-value="WhatsApp"><span class="line-icon">◌</span><span>WhatsApp</span></button>
+                <button type="button" data-value="Indifferente"><span class="line-icon">✓</span><span>È indifferente</span></button>
+              </div><input type="hidden" name="assistance">
+            </section>
+            <section class="match-step" data-step="7">
+              <div class="match-question">Come preferisci richiedere la consulenza?</div>
+              <p>Puoi cercare un professionista che offre un primo contatto gratuito oppure valorizzare il tempo dedicato alla tua richiesta con una consulenza professionale. Se confermi la proposta, l'importo viene scalato.</p>
+              <div class="match-options single consultation-options">
+                <button type="button" data-value="paid"><strong>⭐ Consulenza professionale</strong><span class="consult-price" id="consultPrice">da 20 €</span><small>Richiesta dedicata a professionisti disponibili a lavorare concretamente sulla tua esigenza.</small></button>
+                <button type="button" data-value="free"><strong>Consulenza gratuita</strong><span class="consult-price">0 €</span><small>Cercheremo professionisti che hanno scelto di offrire gratuitamente il primo contatto.</small></button>
+              </div>
+              <input type="hidden" name="consultation_mode">
+              <input type="hidden" name="consultation_fee" id="consultationFee">
+              <div class="safe-note" id="consultationRule">Tariffa calcolata in base alla richiesta: 20 € per voli Italia/Europa, hotel e servizi semplici; 50 € per voli intercontinentali e viaggi di nozze. Se nessun professionista accetta una richiesta pagata, è previsto il rimborso integrale.</div>
+            </section>
+            <section class="match-step" data-step="8">
+              <div class="match-question">Ultimo passo: come possiamo ricontattarti?</div>
+              <p>I tuoi dati serviranno per la richiesta Travel Match e per metterti in contatto con professionisti compatibili.</p>
+              <div class="match-two"><input class="match-input" name="name" placeholder="Nome e cognome" required><input class="match-input" name="phone" type="tel" placeholder="Telefono" required></div>
+              <input class="match-input" name="email" type="email" placeholder="Email" required>
+              <label class="match-check"><input type="checkbox" required> Accetto l’informativa privacy.</label>
+            </section>
+            <div class="match-actions"><button class="btn btn-ghost" id="matchBack" type="button" hidden>← Indietro</button><button class="btn btn-primary" id="matchNext" type="button">Continua →</button></div>
+          </form>
+          <div class="match-note">✓ Nessun obbligo d'acquisto · ✓ Non è una gara al prezzo più basso · Circa 2 minuti</div>
         </div>
       </div>
     </section>
@@ -167,7 +213,7 @@
           <p style="max-width:330px;line-height:1.6;font-size:13px">Il portale italiano che mette in contatto viaggiatori, agenzie e consulenti di viaggio.</p>
         </div>
         <div><h4>Esplora</h4><a href="professionisti.html">Professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a></div>
-        <div><h4>Professionisti</h4><a href="sei-un-agenzia.html">Iscrivi la tua agenzia</a><a href="sei-un-consulente.html">Iscriviti come consulente</a><a href="area-professionisti.html">Pubblica offerte</a><a href="area-professionisti.html">Piano Premium</a></div>
+        <div><h4>Professionisti</h4><a href="per-professionisti.html">Per i professionisti</a><a href="area-professionisti.html">Iscriviti gratis</a><a href="per-professionisti.html#piani">Piani professionali</a></div>
         <div><h4>Informazioni</h4><a href="chi-siamo.html">Chi siamo</a><a href="contatti.html">Contatti</a><a href="privacy.html">Privacy</a></div>
       </div>
       <div class="legal"><span>© 2026 Parti Bene. Tutti i diritti riservati.</span><span>Fotografie: Unsplash · Un progetto indipendente per viaggiare con più consapevolezza.</span></div>
@@ -175,5 +221,6 @@
   </footer>
 
   <script src="app.js"></script>
+  <script src="travel-match.js"></script>
 </body>
 </html>
