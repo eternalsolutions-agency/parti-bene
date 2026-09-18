@@ -17,6 +17,7 @@ export const APPWRITE_CONFIG = Object.freeze({
   offersTableId: "6aa9582c00030c21a118",
   travelRequestsTableId: "6aa96117003d70271c30",
   requestAssignmentsTableId: "6aa963d800048778c6e3",
+  travelRequestFunctionId: "6aad49000033688eb237",
   mediaBucketId: "6aa8ea22003dda7c03ca"
 });
 
