@@ -76,12 +76,13 @@ const form=document.getElementById("proposalForm"),destination=document.getEleme
 const params=new URLSearchParams(location.search);
 const selectedSlug=params.get("professionista");
 let travelBrief={};try{travelBrief=JSON.parse(sessionStorage.getItem("partiBeneTravelMatch")||"{}");}catch(_){}
+const isTravelMatch=params.get("travelmatch")==="1" || Object.keys(travelBrief).length>0;
 function briefValue(key){return travelBrief[key]??params.get(key);}
 if(selectedSlug){const box=document.getElementById("selectedProfessional");box.hidden=false;document.getElementById("selectedProfessionalName").textContent=selectedSlug.replace(/-/g," ").replace(/\b\w/g,x=>x.toUpperCase());}
 const briefItems=[["Destinazione",briefValue("destination")],["Viaggio",briefValue("trip_type")],["Periodo",briefValue("period")],["Partenza",briefValue("departure")],["Budget",briefValue("budget")],["Assistenza",briefValue("assistance")],["Consulenza",briefValue("consultation_mode")==="paid"?"Professionale · €"+(briefValue("consultation_fee")||""):(briefValue("consultation_mode")==="free"?"Primo contatto gratuito":null)]].filter(x=>x[1]);
 if(briefItems.length){const summary=document.getElementById("briefSummary");summary.hidden=false;summary.innerHTML=briefItems.map(([k,v])=>'<div><span>'+k+'</span><strong>'+String(v).replace(/[<>&"]/g,"")+'</strong></div>').join("");}
 
-if(params.get("travelmatch")==="1"){["destination","departure","period","adults","children","budget","assistance","intent","consultation_mode","consultation_fee"].forEach(key=>{const el=form.elements[key];const value=briefValue(key);if(!el||value===null)return;if(el instanceof RadioNodeList){const radio=[...form.querySelectorAll('[name="'+key+'"]')].find(r=>r.value===value);if(radio)radio.checked=true;}else el.value=value;});const type=briefValue("trip_type");if(type){const radio=[...form.querySelectorAll('[name="trip_type"]')].find(r=>r.value===type);if(radio)radio.checked=true;}const fee=briefValue("consultation_fee");if(fee)document.getElementById("feeNotice").textContent="Consulenza professionale: "+fee+" €. Se confermi la proposta, l’importo viene scalato. Se nessun professionista accetta la richiesta pagata, è previsto il rimborso integrale.";}
+if(isTravelMatch){["destination","departure","period","adults","children","budget","assistance","intent","consultation_mode","consultation_fee"].forEach(key=>{const el=form.elements[key];const value=briefValue(key);if(!el||value===null)return;if(el instanceof RadioNodeList){const radio=[...form.querySelectorAll('[name="'+key+'"]')].find(r=>r.value===value);if(radio)radio.checked=true;}else el.value=value;});const type=briefValue("trip_type");if(type){const radio=[...form.querySelectorAll('[name="trip_type"]')].find(r=>r.value===type);if(radio)radio.checked=true;}const fee=briefValue("consultation_fee");if(fee)document.getElementById("feeNotice").textContent="Consulenza professionale: "+fee+" €. Se confermi la proposta, l’importo viene scalato. Se nessun professionista accetta la richiesta pagata, è previsto il rimborso integrale.";}
 
 function updateSummary(){const d=destination.value.trim(),p=period.value.trim(),b=budget.value;document.title=(d?"Viaggio "+d+" | ":"")+"Parti Bene";}
 [destination,period,budget].forEach(el=>el.addEventListener("input",updateSummary));
@@ -129,8 +130,6 @@ form.addEventListener("submit",async function(e){
   if(!functionResponse.ok)throw new Error(execution.message||"Non è stato possibile eseguire la richiesta.");
   const result=JSON.parse(execution.responseBody||"{}");
   if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Non è stato possibile inviare la richiesta.");
-  const result=await functionResponse.json().catch(()=>({}));
-  if(!functionResponse.ok)throw new Error(result.error||"Non è stato possibile inviare la richiesta.");
   if(selectedSlug&&!result.assigned)throw new Error("La richiesta è stata salvata, ma non è stato possibile assegnarla automaticamente al professionista scelto.");
   form.reset();message.textContent=selectedSlug?"Richiesta confermata e assegnata al professionista scelto. Ora potrà accettarla o rifiutarla dalla sua dashboard.":"Richiesta inviata correttamente. Parti Bene individuerà professionisti compatibili, senza obbligo di acquisto.";
  }catch(error){message.textContent=error.message;message.style.background="#fff1ef";message.style.color="#913428";}
