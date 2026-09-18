@@ -235,22 +235,12 @@ async function listMyRequests(userId) {
   }
 }
 async function loadOwnedProfile(user, application) {
-  const result=await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows");
-  const rows=result.rows||[];
-  currentProfile=rows.find(row=>row.utente_id===user.$id)||null;
-  if(!currentProfile && (user.labels||[]).includes("admin")){
-    const legacyProfile=application?rows.find(row=>row.nome===application.nome_attivita):null;
-    if(legacyProfile){
-      const permissions=[
-        Permission.read(Role.any()),
-        Permission.update(Role.user(user.$id)),
-        Permission.update(Role.label("admin")),
-        Permission.delete(Role.label("admin"))
-      ];
-      currentProfile=await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+legacyProfile.$id,{
-        method:"PATCH",body:{data:{utente_id:user.$id},permissions}
-      });
-    }
+  try {
+    const result=await travelRequestFunction("my-profile");
+    currentProfile=result.profile||null;
+  } catch (error) {
+    if (/non trovato/i.test(error.message||"")) currentProfile=null;
+    else throw error;
   }
   if(!currentProfile){
     document.getElementById("profileLinkNotice").hidden=false;
@@ -496,8 +486,8 @@ profileForm.addEventListener("submit",async event=>{
       destinazioni:commaList(data.get("destinazioni")),
       disponibile_online:Boolean(data.get("disponibile_online"))
     };
-    await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+currentProfile.$id,{method:"PATCH",body:{data:update}});
-    currentProfile={...currentProfile,...update};
+    const saved=await travelRequestFunction("update-profile",{profile:update});
+    currentProfile=saved.profile||{...currentProfile,...update};
     profileMessage.textContent="Profilo aggiornato correttamente.";
   }catch(error){
     profileMessage.textContent=readableError(error);
