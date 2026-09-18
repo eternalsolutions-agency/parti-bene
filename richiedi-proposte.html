@@ -110,11 +110,25 @@ form.addEventListener("submit",async function(e){
    stato:"nuova",numero_assegnazioni:0,privacy_accettata:true
   };
   Object.keys(payload).forEach(key=>{if(payload[key]===null)delete payload[key];});
-  const functionResponse=await fetch("https://parti-bene.fra.appwrite.run/",{
+  const functionResponse=await fetch(APPWRITE_CONFIG.endpoint+"/functions/"+APPWRITE_CONFIG.travelRequestFunctionId+"/executions",{
    method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({action:"create",request:payload})
+   headers:{
+    "Content-Type":"application/json",
+    "X-Appwrite-Project":APPWRITE_CONFIG.projectId,
+    "X-Appwrite-Response-Format":"1.8.0"
+   },
+   body:JSON.stringify({
+    body:JSON.stringify({action:"create",request:payload}),
+    async:false,
+    path:"/",
+    method:"POST",
+    headers:{"content-type":"application/json"}
+   })
   });
+  const execution=await functionResponse.json().catch(()=>({}));
+  if(!functionResponse.ok)throw new Error(execution.message||"Non è stato possibile eseguire la richiesta.");
+  const result=JSON.parse(execution.responseBody||"{}");
+  if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Non è stato possibile inviare la richiesta.");
   const result=await functionResponse.json().catch(()=>({}));
   if(!functionResponse.ok)throw new Error(result.error||"Non è stato possibile inviare la richiesta.");
   if(selectedSlug&&!result.assigned)throw new Error("La richiesta è stata salvata, ma non è stato possibile assegnarla automaticamente al professionista scelto.");
