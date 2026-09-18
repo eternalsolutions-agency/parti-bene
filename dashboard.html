@@ -313,6 +313,7 @@ try {
     renderRequest(requests[0]);
     if (requests[0].stato === "approvata") await loadOwnedProfile(user, requests[0]);
   }
+  await loadClientRequests();
   else {
     // Approved professionals may not have the application row ID in this
     // browser (older signup/test accounts). Load the owned public profile
@@ -331,38 +332,53 @@ try {
 }
 
 
-async function loadClientRequests(userId){
+async function travelRequestFunction(action,payload={}){
+ const response=await fetch(APPWRITE_CONFIG.endpoint+"/functions/"+APPWRITE_CONFIG.travelRequestFunctionId+"/executions",{
+  method:"POST",credentials:"include",
+  headers:{"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"},
+  body:JSON.stringify({body:JSON.stringify({action,...payload}),async:false,path:"/",method:"POST",headers:{"content-type":"application/json"}})
+ });
+ const execution=await response.json().catch(()=>({}));
+ if(!response.ok)throw new Error(execution.message||"Errore durante l'esecuzione.");
+ const result=JSON.parse(execution.responseBody||"{}");
+ if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Operazione non riuscita.");
+ return result;
+}
+async function loadClientRequests(){
  try{
-  const [assignmentResult,requestResult]=await Promise.all([
-   profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.requestAssignmentsTableId+"/rows"),
-   profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.travelRequestsTableId+"/rows")
-  ]);
-  const requests=requestResult.rows||[];
-  assignedRequests=(assignmentResult.rows||[]).filter(row=>row.utente_id===userId).map(assignment=>({assignment,request:requests.find(row=>row.$id===assignment.richiesta_id)})).filter(item=>item.request);
+  const result=await travelRequestFunction("list");
+  assignedRequests=result.items||[];
   renderClientRequests();
- }catch(error){clientRequestsList.innerHTML='<div class="notice">'+escapeOffer(readableError(error))+'</div>';}
+ }catch(error){clientRequestsList.innerHTML='<div class="notice">'+escapeOffer(error.message||readableError(error))+'</div>';}
 }
 function renderClientRequests(){
- clientRequestsList.innerHTML=assignedRequests.length?assignedRequests.map(({assignment,request})=>'<article class="client-request-card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><div class="kicker">'+escapeOffer(request.tipologia_viaggio)+'</div><h3>'+escapeOffer(request.destinazione)+'</h3></div><span class="offer-state">'+escapeOffer(assignment.stato)+'</span></div><div class="request-meta"><span>'+escapeOffer(request.periodo)+'</span><span>'+escapeOffer(request.adulti)+' adulti</span><span>'+escapeOffer(request.bambini||0)+' bambini</span><span>'+escapeOffer(request.budget||"Budget non indicato")+'</span></div><p>'+escapeOffer(request.dettagli||"Nessuna preferenza aggiuntiva.")+'</p><div class="request-contact"><div><strong>'+escapeOffer(request.nome_cliente)+'</strong><br>'+escapeOffer(request.email)+'</div><div><strong>Telefono</strong><br>'+escapeOffer(request.telefono)+'</div></div><div class="request-decision" data-decision="'+assignment.$id+'">'+(assignment.stato==="nuova"?'<button class="btn btn-primary" type="button" data-accept="'+assignment.$id+'">Accetta richiesta</button><button class="btn btn-ghost" type="button" data-refuse="'+assignment.$id+'">Rifiuta</button>':'')+'</div><form class="response-form form-grid" data-response="'+assignment.$id+'" '+(assignment.stato==="rifiutata"?'hidden':'')+'><div class="form-field"><label>Prima indicazione economica (€)</label><input name="price" type="number" min="0" value="'+escapeOffer(assignment.proposta_economica||"")+'"></div><div class="form-field"><label>Messaggio al cliente</label><textarea name="message" rows="3">'+escapeOffer(assignment.messaggio_professionista||"")+'</textarea></div><button class="btn btn-primary form-field full" type="submit">Salva la risposta</button></form></article>').join(""):'<div class="notice">Non hai ancora ricevuto richieste compatibili.</div>';
+ clientRequestsList.innerHTML=assignedRequests.length?assignedRequests.map(({assignment,request})=>{
+  const accepted=["accettata","risposta"].includes(assignment.stato);
+  const contact=accepted?'<div class="request-contact"><div><strong>'+escapeOffer(request.nome_cliente||"")+'</strong><br>'+escapeOffer(request.email||"")+'</div><div><strong>Telefono</strong><br>'+escapeOffer(request.telefono||"")+'</div></div>':'<div class="notice">I contatti del viaggiatore saranno visibili dopo aver accettato la richiesta.</div>';
+  const responseForm=accepted?'<form class="response-form form-grid" data-response="'+assignment.$id+'"><div class="form-field"><label>Prima indicazione economica (€)</label><input name="price" type="number" min="0" value="'+escapeOffer(assignment.proposta_economica||"")+'"></div><div class="form-field"><label>Messaggio al cliente</label><textarea name="message" rows="3">'+escapeOffer(assignment.messaggio_professionista||"")+'</textarea></div><button class="btn btn-primary form-field full" type="submit">Salva la risposta</button></form>':'';
+  return '<article class="client-request-card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><div class="kicker">'+escapeOffer(request.tipologia_viaggio)+'</div><h3>'+escapeOffer(request.destinazione)+'</h3></div><span class="offer-state">'+escapeOffer(assignment.stato)+'</span></div><div class="request-meta"><span>'+escapeOffer(request.periodo)+'</span><span>'+escapeOffer(request.adulti)+' adulti</span><span>'+escapeOffer(request.bambini||0)+' bambini</span><span>'+escapeOffer(request.budget||"Budget non indicato")+'</span></div><p>'+escapeOffer(request.dettagli||"Nessuna preferenza aggiuntiva.")+'</p>'+contact+'<div class="request-decision" data-decision="'+assignment.$id+'">'+(assignment.stato==="nuova"?'<button class="btn btn-primary" type="button" data-accept="'+assignment.$id+'">Accetta richiesta</button><button class="btn btn-ghost" type="button" data-refuse="'+assignment.$id+'">Rifiuta</button>':'')+'</div>'+responseForm+'</article>';
+ }).join(""):'<div class="notice">Non hai ancora ricevuto richieste compatibili.</div>';
 }
 clientRequestsList.addEventListener("click",async event=>{
  const accept=event.target.closest("[data-accept]"),refuse=event.target.closest("[data-refuse]");if(!accept&&!refuse)return;
  const id=accept?.dataset.accept||refuse?.dataset.refuse,item=assignedRequests.find(entry=>entry.assignment.$id===id);if(!item)return;
  let message=null;if(refuse){message=prompt("Perché vuoi rifiutare la richiesta? (es. budget, date, destinazione, disponibilità, target non compatibile)");if(message===null)return;message=message.trim()||"Richiesta non compatibile";}
  const button=accept||refuse;button.disabled=true;
- try{const update={stato:accept?"accettata":"rifiutata",letta:true,data_risposta:new Date().toISOString()};if(message)update.messaggio_professionista="Motivo rifiuto: "+message;await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.requestAssignmentsTableId+"/rows/"+id,{method:"PATCH",body:{data:update}});Object.assign(item.assignment,update);renderClientRequests();}
- catch(error){alert(readableError(error));button.disabled=false;}
+ try{
+  const result=await travelRequestFunction("update",{assignmentId:id,status:accept?"accettata":"rifiutata",message});
+  item.assignment=result.assignment;
+  if(result.request)item.request=result.request;
+  renderClientRequests();
+ }catch(error){alert(error.message||readableError(error));button.disabled=false;}
 });
 clientRequestsList.addEventListener("submit",async event=>{
  const form=event.target.closest("[data-response]");if(!form)return;event.preventDefault();
  const item=assignedRequests.find(entry=>entry.assignment.$id===form.dataset.response);if(!item)return;
  const data=new FormData(form),button=form.querySelector("button");button.disabled=true;button.textContent="Salvataggio…";
  try{
-  const update={stato:"risposta",letta:true,messaggio_professionista:String(data.get("message")||"").trim()||null,proposta_economica:Number(data.get("price")||0)||null,data_risposta:new Date().toISOString()};
-  Object.keys(update).forEach(key=>{if(update[key]===null)delete update[key];});
-  await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.requestAssignmentsTableId+"/rows/"+item.assignment.$id,{method:"PATCH",body:{data:update}});
-  Object.assign(item.assignment,update);renderClientRequests();
- }catch(error){alert(readableError(error));}
+  const result=await travelRequestFunction("update",{assignmentId:item.assignment.$id,status:"risposta",message:String(data.get("message")||"").trim(),price:String(data.get("price")||"")});
+  item.assignment=result.assignment;if(result.request)item.request=result.request;renderClientRequests();
+ }catch(error){alert(error.message||readableError(error));}
  finally{button.disabled=false;button.textContent="Salva la risposta";}
 });
 
