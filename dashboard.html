@@ -173,7 +173,7 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 
 <footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>Area protetta da Appwrite</span></div></div></footer>
 <script type="module">
-import { APPWRITE_CONFIG, account, storage, ID, Permission, Role, readableError } from "./appwrite-config.js";
+import { APPWRITE_CONFIG, account, storage, functions, ID, Permission, Role, readableError } from "./appwrite-config.js";
 
 const statusLabels = {
   in_attesa: ["In attesa", "status-pending", "La richiesta è stata ricevuta ed è in attesa del controllo di Parti Bene."],
@@ -304,14 +304,14 @@ function renderRequest(row) {
   }
 }
 async function travelRequestFunction(action,payload={}){
- const currentUser=await account.get();
- const response=await fetch(APPWRITE_CONFIG.endpoint+"/functions/"+APPWRITE_CONFIG.travelRequestFunctionId+"/executions",{
-  method:"POST",credentials:"include",
-  headers:{"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"},
-  body:JSON.stringify({body:JSON.stringify({action,...payload,userId:currentUser.$id}),async:false,path:"/",method:"POST",headers:{"content-type":"application/json"}})
+ const execution=await functions.createExecution({
+  functionId:APPWRITE_CONFIG.travelRequestFunctionId,
+  body:JSON.stringify({action,...payload}),
+  async:false,
+  path:"/",
+  method:"POST",
+  headers:{"content-type":"application/json"}
  });
- const execution=await response.json().catch(()=>({}));
- if(!response.ok)throw new Error(execution.message||"Errore durante l'esecuzione.");
  const result=JSON.parse(execution.responseBody||"{}");
  if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Operazione non riuscita.");
  return result;
