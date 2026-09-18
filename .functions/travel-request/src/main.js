@@ -191,7 +191,18 @@ export default async ({ req, res, error }) => {
 
     return res.json({ error: "Azione non riconosciuta." }, 400);
   } catch (err) {
-    error(err?.stack || String(err));
-    return res.json({ error: err?.message || "Errore interno." }, 500);
+    const cause = err?.cause;
+    const diagnostic = {
+      name: err?.name || null,
+      message: err?.message || String(err),
+      causeName: cause?.name || null,
+      causeMessage: cause?.message || null,
+      causeCode: cause?.code || null,
+      endpoint: process.env.APPWRITE_FUNCTION_API_ENDPOINT || null,
+      hasDynamicKey: Boolean(process.env.APPWRITE_FUNCTION_API_KEY || req.headers["x-appwrite-key"]),
+      hasProjectId: Boolean(process.env.APPWRITE_FUNCTION_PROJECT_ID)
+    };
+    error(JSON.stringify(diagnostic));
+    return res.json({ error: diagnostic.message, diagnostic }, 500);
   }
 };
