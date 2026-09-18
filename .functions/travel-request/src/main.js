@@ -142,13 +142,17 @@ export default async ({ req, res, error }) => {
     if (!userId) return res.json({ error: "Accedi come professionista per continuare." }, 401);
 
     if (action === "list") {
+      // Avoid relying on a table index/query for utente_id while the schema is
+      // still being finalized. Read the small assignment set server-side and
+      // filter by the authenticated professional ID.
       const assignments = await tables.listRows({
         databaseId: DATABASE_ID,
         tableId: ASSIGNMENTS_TABLE_ID,
-        queries: [Query.equal("utente_id", [userId]), Query.orderDesc("$createdAt"), Query.limit(50)]
+        queries: [Query.orderDesc("$createdAt"), Query.limit(100)]
       });
+      const ownedAssignments = (assignments.rows || []).filter(row => String(row.utente_id || "") === String(userId));
       const items = [];
-      for (const assignment of assignments.rows || []) {
+      for (const assignment of ownedAssignments) {
         const request = await tables.getRow({
           databaseId: DATABASE_ID,
           tableId: TRAVEL_REQUESTS_TABLE_ID,
