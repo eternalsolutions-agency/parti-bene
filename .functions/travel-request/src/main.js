@@ -159,6 +159,29 @@ export default async ({ req, res, error }) => {
       return res.json({ ok: true, requestId: request.$id, assigned: Boolean(assignment) }, 201);
     }
 
+    if (action === "public-professionals") {
+      const profiles = await tables.listRows({
+        databaseId: DATABASE_ID,
+        tableId: PROFESSIONALS_TABLE_ID,
+        queries: [Query.equal("stato", ["pubblicato"]), Query.limit(100)]
+      });
+      const items = (profiles.rows || []).map(row => ({
+        $id: row.$id,
+        nome: row.nome,
+        tipologia: row.tipologia,
+        slug: row.slug,
+        descrizione: row.descrizione,
+        comune: row.comune,
+        provincia: row.provincia,
+        disponibile_online: Boolean(row.disponibile_online),
+        specializzazioni: row.specializzazioni || [],
+        destinazioni: row.destinazioni || [],
+        profilo_verificato: Boolean(row.profilo_verificato),
+        stato: "pubblicato"
+      }));
+      return res.json({ ok: true, items });
+    }
+
     if (!userId) return res.json({ error: "Accedi come professionista per continuare." }, 401);
 
     if (action === "list") {
