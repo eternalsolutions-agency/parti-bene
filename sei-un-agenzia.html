@@ -257,10 +257,11 @@ form.addEventListener("submit", async event => {
       privacy_accettata: Boolean(data.get("privacy"))
     };
 
-    await createApplicationRow(applicationData, [
+    const applicationRow = await createApplicationRow(applicationData, [
       Permission.read(Role.user(currentUser.$id)),
       Permission.update(Role.user(currentUser.$id))
     ]);
+    localStorage.setItem("partiBeneApplicationId", applicationRow.$id);
 
     if (!currentUser.emailVerification) {
       try {
