@@ -38,7 +38,7 @@
 <div><h4>Informazioni</h4><a href="chi-siamo.html">Chi siamo</a><a href="richiedi-proposte.html">Contatti</a><a href="privacy.html">Privacy</a></div>
 </div><div class="legal"><span>© 2026 Parti Bene.</span><span>Profili soggetti ad approvazione</span></div></div></footer>
 <script type="module">
-import { APPWRITE_CONFIG } from "./appwrite-config.js";
+import { APPWRITE_CONFIG, functions } from "./appwrite-config.js";
 import { getDestinationImage } from "./destination-images.js";
 let professionals=[],userPosition=null;
 const params=new URLSearchParams(location.search);
@@ -87,10 +87,10 @@ function render(){
 }
 async function load(){
  try{
-  const response=await fetch(APPWRITE_CONFIG.endpoint+"/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows",{headers:{"X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"}});
-  const result=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(result.message||"Impossibile caricare i professionisti.");
-  professionals=(result.rows||[]).filter(row=>row.stato==="pubblicato");
+  const execution=await functions.createExecution({functionId:APPWRITE_CONFIG.travelRequestFunctionId,body:JSON.stringify({action:"public-professionals"}),async:false,path:"/",method:"POST",headers:{"content-type":"application/json"}});
+  const result=JSON.parse(execution.responseBody||"{}");
+  if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Impossibile caricare i professionisti.");
+  professionals=result.items||[];
   render();
  }catch(error){document.getElementById("resultTitle").classList.remove("skeleton-title");document.getElementById("resultTitle").textContent="Professionisti";message.style.display="block";message.textContent="Non è stato possibile caricare i profili. Riprova tra qualche minuto.";empty.style.display="block";}
 }
