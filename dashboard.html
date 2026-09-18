@@ -48,6 +48,7 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 .offer-form-actions{display:flex;gap:10px}
 .offer-state{display:inline-flex;margin-top:9px;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;background:var(--orange-soft);color:var(--orange-dark)}
 .client-request-list{display:grid;gap:14px;margin-top:24px}.client-request-card{border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:17px;padding:19px;background:#fff}.client-request-card h3{margin:0;color:var(--navy)}.request-meta{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.request-meta span{background:var(--soft);border-radius:999px;padding:6px 9px;font-size:12px;font-weight:750}.request-contact{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.request-contact div{background:var(--orange-soft);border-radius:12px;padding:11px;font-size:13px}.response-form{margin-top:17px;padding-top:17px;border-top:1px solid var(--line)}
+.request-summary{margin-top:14px;padding:14px;border-radius:14px;background:var(--soft);border:1px solid var(--line)}.request-summary strong{display:block;color:var(--navy);margin-bottom:6px}.request-summary p{margin:0;white-space:pre-wrap}.request-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}.request-tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font-weight:850;cursor:pointer}.request-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}.request-counters{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.request-counter{background:var(--soft);border-radius:12px;padding:10px 13px;font-size:13px}.request-counter strong{color:var(--navy);font-size:18px;margin-right:5px}.request-answered{border-left-color:#20a57a}.request-answered .offer-state{background:#e6f8f4;color:#17705f}.request-details-toggle{margin-top:12px}.request-date{font-size:12px;color:var(--muted);margin-top:8px}
 @media(max-width:850px){.dashboard-grid{grid-template-columns:1fr}.dashboard-sidebar{position:static}.dashboard-cards{grid-template-columns:1fr}}
 @media(max-width:620px){.detail-grid,.dashboard-media{grid-template-columns:1fr}.dashboard-media img{height:190px}}
 </style>
@@ -158,7 +159,7 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 </div>
 <div id="clientRequestsPanel" class="panel dashboard-view view-ready" data-dashboard-view="requests">
 <div class="kicker">Richieste clienti</div><h2 style="font-size:32px">Viaggiatori compatibili con te</h2>
-<p class="section-copy">Visualizzi esclusivamente le richieste assegnate al tuo account.</p>
+<p class="section-copy">Visualizzi esclusivamente le richieste assegnate al tuo account.</p><div id="requestCounters" class="request-counters"></div><div class="request-tabs"><button class="request-tab active" type="button" data-request-filter="todo">Da gestire</button><button class="request-tab" type="button" data-request-filter="answered">Risposte</button><button class="request-tab" type="button" data-request-filter="all">Tutte</button></div>
 <div id="clientRequestsList" class="client-request-list"><div class="notice">Caricamento delle richieste…</div></div>
 </div>
 <div id="headquartersMessagesPanel" class="panel dashboard-view view-ready" data-dashboard-view="messages">
@@ -322,14 +323,35 @@ async function loadClientRequests(){
   renderClientRequests();
  }catch(error){clientRequestsList.innerHTML='<div class="notice">'+escapeOffer(error.message||readableError(error))+'</div>';}
 }
-function renderClientRequests(){
- clientRequestsList.innerHTML=assignedRequests.length?assignedRequests.map(({assignment,request})=>{
-  const accepted=["accettata","risposta"].includes(assignment.stato);
-  const contact=accepted?'<div class="request-contact"><div><strong>'+escapeOffer(request.nome_cliente||"")+'</strong><br>'+escapeOffer(request.email||"")+'</div><div><strong>Telefono</strong><br>'+escapeOffer(request.telefono||"")+'</div></div>':'<div class="notice">I contatti del viaggiatore saranno visibili dopo aver accettato la richiesta.</div>';
-  const responseForm=accepted?'<form class="response-form form-grid" data-response="'+assignment.$id+'"><div class="form-field"><label>Prima indicazione economica (€)</label><input name="price" type="number" min="0" value="'+escapeOffer(assignment.proposta_economica||"")+'"></div><div class="form-field"><label>Messaggio al cliente</label><textarea name="message" rows="3">'+escapeOffer(assignment.messaggio_professionista||"")+'</textarea></div><button class="btn btn-primary form-field full" type="submit">Salva la risposta</button></form>':'';
-  return '<article class="client-request-card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><div class="kicker">'+escapeOffer(request.tipologia_viaggio)+'</div><h3>'+escapeOffer(request.destinazione)+'</h3></div><span class="offer-state">'+escapeOffer(assignment.stato)+'</span></div><div class="request-meta"><span>'+escapeOffer(request.periodo)+'</span><span>'+escapeOffer(request.adulti)+' adulti</span><span>'+escapeOffer(request.bambini||0)+' bambini</span><span>'+escapeOffer(request.budget||"Budget non indicato")+'</span></div><p>'+escapeOffer(request.dettagli||"Nessuna preferenza aggiuntiva.")+'</p>'+contact+'<div class="request-decision" data-decision="'+assignment.$id+'">'+(assignment.stato==="nuova"?'<button class="btn btn-primary" type="button" data-accept="'+assignment.$id+'">Accetta richiesta</button><button class="btn btn-ghost" type="button" data-refuse="'+assignment.$id+'">Rifiuta</button>':'')+'</div>'+responseForm+'</article>';
- }).join(""):'<div class="notice">Non hai ancora ricevuto richieste compatibili.</div>';
+let requestFilter="todo";
+function formatRequestDate(value){
+ if(!value)return "";
+ const date=new Date(value);if(Number.isNaN(date.getTime()))return "";
+ return new Intl.DateTimeFormat("it-IT",{dateStyle:"short",timeStyle:"short"}).format(date);
 }
+function renderRequestCounters(){
+ const counts={nuova:0,accettata:0,risposta:0};
+ assignedRequests.forEach(({assignment})=>{if(counts[assignment.stato]!==undefined)counts[assignment.stato]++;});
+ document.getElementById("requestCounters").innerHTML='<span class="request-counter"><strong>'+counts.nuova+'</strong> Nuove</span><span class="request-counter"><strong>'+counts.accettata+'</strong> Accettate</span><span class="request-counter"><strong>'+counts.risposta+'</strong> Risposte</span>';
+}
+function renderClientRequests(){
+ renderRequestCounters();
+ const visible=assignedRequests.filter(({assignment})=>requestFilter==="all"||(requestFilter==="answered"?assignment.stato==="risposta":assignment.stato!=="risposta"));
+ clientRequestsList.innerHTML=visible.length?visible.map(({assignment,request})=>{
+  const accepted=["accettata","risposta"].includes(assignment.stato),answered=assignment.stato==="risposta";
+  const contact=accepted?'<div class="request-contact"><div><strong>'+escapeOffer(request.nome_cliente||"")+'</strong><br>'+escapeOffer(request.email||"")+'</div><div><strong>Telefono</strong><br>'+escapeOffer(request.telefono||"")+'</div></div>':'<div class="notice">I contatti del viaggiatore saranno visibili dopo aver accettato la richiesta.</div>';
+  const customerSummary='<div class="request-summary"><strong>Richiesta del cliente</strong><p>'+escapeOffer(request.dettagli||"Nessuna preferenza aggiuntiva.")+'</p></div>';
+  const answeredSummary=answered?'<div class="request-summary"><strong>La tua risposta</strong><p>'+escapeOffer(assignment.messaggio_professionista||"Nessun messaggio inserito.")+'</p>'+(assignment.proposta_economica!==null&&assignment.proposta_economica!==undefined?'<div class="request-date"><strong style="display:inline">Proposta indicativa:</strong> € '+escapeOffer(assignment.proposta_economica)+'</div>':'')+'<div class="request-date">Risposto il: '+escapeOffer(formatRequestDate(assignment.data_risposta))+'</div></div>':'';
+  const responseForm=assignment.stato==="accettata"?'<form class="response-form form-grid" data-response="'+assignment.$id+'"><div class="form-field"><label>Prima indicazione economica (€)</label><input name="price" type="number" min="0" value="'+escapeOffer(assignment.proposta_economica||"")+'"></div><div class="form-field"><label>Messaggio al cliente</label><textarea name="message" rows="3">'+escapeOffer(assignment.messaggio_professionista||"")+'</textarea></div><button class="btn btn-primary form-field full" type="submit">Invia risposta</button></form>':'';
+  const statusLabel={nuova:"Nuova",accettata:"Accettata",rifiutata:"Rifiutata",risposta:"Risposta"}[assignment.stato]||assignment.stato;
+  return '<article class="client-request-card '+(answered?"request-answered":"")+'"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><div class="kicker">'+escapeOffer(request.tipologia_viaggio)+'</div><h3>'+escapeOffer(request.destinazione)+'</h3></div><span class="offer-state">'+escapeOffer(statusLabel)+'</span></div><div class="request-meta"><span>'+escapeOffer(request.periodo)+'</span><span>'+escapeOffer(request.adulti)+' adulti</span><span>'+escapeOffer(request.bambini||0)+' bambini</span><span>'+escapeOffer(request.budget||"Budget non indicato")+'</span></div>'+customerSummary+contact+'<div class="request-decision" data-decision="'+assignment.$id+'">'+(assignment.stato==="nuova"?'<button class="btn btn-primary" type="button" data-accept="'+assignment.$id+'">Accetta richiesta</button><button class="btn btn-ghost" type="button" data-refuse="'+assignment.$id+'">Rifiuta</button>':'')+'</div>'+answeredSummary+responseForm+'</article>';
+ }).join(""):'<div class="notice">'+(requestFilter==="answered"?"Non hai ancora risposte inviate.":requestFilter==="todo"?"Non ci sono richieste da gestire.":"Non hai ancora ricevuto richieste compatibili.")+'</div>';
+}
+document.querySelectorAll("[data-request-filter]").forEach(button=>button.addEventListener("click",()=>{
+ requestFilter=button.dataset.requestFilter;
+ document.querySelectorAll("[data-request-filter]").forEach(item=>item.classList.toggle("active",item===button));
+ renderClientRequests();
+}));
 clientRequestsList.addEventListener("click",async event=>{
  const accept=event.target.closest("[data-accept]"),refuse=event.target.closest("[data-refuse]");if(!accept&&!refuse)return;
  const id=accept?.dataset.accept||refuse?.dataset.refuse,item=assignedRequests.find(entry=>entry.assignment.$id===id);if(!item)return;
