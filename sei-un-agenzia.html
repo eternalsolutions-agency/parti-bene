@@ -217,7 +217,14 @@ form.addEventListener("submit", async event => {
         password,
         name: `${data.get("first_name")} ${data.get("last_name")}`.trim()
       });
-      await createSessionWithRetry(String(data.get("email")).trim(), password);
+      try {
+        await createSessionWithRetry(String(data.get("email")).trim(), password);
+      } catch (sessionError) {
+        // Appwrite can already have activated a session while the signup flow
+        // is still completing. In that case reuse it instead of failing.
+        const activeUser = await account.get().catch(() => null);
+        if (!activeUser) throw sessionError;
+      }
       currentUser = await account.get();
     }
 
