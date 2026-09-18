@@ -3,6 +3,7 @@ import {
   Account,
   TablesDB,
   Storage,
+  Functions,
   ID,
   Permission,
   Role
@@ -28,6 +29,7 @@ export const client = new Client()
 export const account = new Account(client);
 export const tablesDB = new TablesDB(client);
 export const storage = new Storage(client);
+export const functions = new Functions(client);
 export { ID, Permission, Role };
 
 export function readableError(error) {
