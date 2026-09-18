@@ -120,6 +120,7 @@ export default async ({ req, res, error }) => {
             utente_id: professional.utente_id,
             professionista_id: professional.$id,
             richiesta_id: request.$id,
+            ordine: 1,
             stato: "nuova",
             letta: false
           }
