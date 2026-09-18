@@ -215,28 +215,30 @@ function fileUrl(fileId) {
   if (!fileId) return null;
   return storage.getFileView({ bucketId: APPWRITE_CONFIG.mediaBucketId, fileId });
 }
-async function listMyRequests() {
-  const response = await fetch(
-    APPWRITE_CONFIG.endpoint + "/tablesdb/" + APPWRITE_CONFIG.databaseId +
-    "/tables/" + APPWRITE_CONFIG.applicationsTableId + "/rows",
-    {
-      credentials: "include",
-      headers: {
-        "X-Appwrite-Project": APPWRITE_CONFIG.projectId,
-        "X-Appwrite-Response-Format": "1.8.0"
-      }
-    }
-  );
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(result.message || "Impossibile caricare la richiesta.");
-  return (result.rows || []).sort((a,b) => new Date(b.$createdAt) - new Date(a.$createdAt));
+async function listMyRequests(userId) {
+  // Appwrite listRows requires table-level READ. Our applications table is
+  // intentionally private, so the professional dashboard reads the row ID
+  // saved at signup and falls back to the public profile for approved users.
+  const applicationId = localStorage.getItem("partiBeneApplicationId");
+  if (!applicationId) return [];
+  try {
+    const result = await profileApi(
+      "/tablesdb/" + APPWRITE_CONFIG.databaseId +
+      "/tables/" + APPWRITE_CONFIG.applicationsTableId + "/rows/" +
+      encodeURIComponent(applicationId)
+    );
+    return result.utente_id === userId ? [result] : [];
+  } catch (error) {
+    if (error.code === 404 || error.code === 401) return [];
+    throw error;
+  }
 }
 async function loadOwnedProfile(user, application) {
   const result=await profileApi("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows");
   const rows=result.rows||[];
   currentProfile=rows.find(row=>row.utente_id===user.$id)||null;
   if(!currentProfile && (user.labels||[]).includes("admin")){
-    const legacyProfile=rows.find(row=>row.nome===application.nome_attivita);
+    const legacyProfile=application?rows.find(row=>row.nome===application.nome_attivita):null;
     if(legacyProfile){
       const permissions=[
         Permission.read(Role.any()),
@@ -306,15 +308,21 @@ try {
   setText("userEmail", user.email);
   document.getElementById("userAvatar").textContent = (user.name || "PB").split(" ").map(part => part[0]).slice(0,2).join("").toUpperCase();
   document.getElementById("adminLink").hidden = !(user.labels || []).includes("admin");
-  const requests = await listMyRequests();
+  const requests = await listMyRequests(user.$id);
   if (requests.length) {
     renderRequest(requests[0]);
     if (requests[0].stato === "approvata") await loadOwnedProfile(user, requests[0]);
   }
   else {
+    // Approved professionals may not have the application row ID in this
+    // browser (older signup/test accounts). Load the owned public profile
+    // without trying to enumerate the private applications table.
+    await loadOwnedProfile(user, null);
     document.getElementById("loadingPanel").hidden = true;
-    document.getElementById("emptyPanel").hidden = false;
-    document.getElementById("emptyPanel").classList.add("view-ready");
+    if (!currentProfile) {
+      document.getElementById("emptyPanel").hidden = false;
+      document.getElementById("emptyPanel").classList.add("view-ready");
+    }
   }
 } catch (error) {
   try { await account.get(); }
