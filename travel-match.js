@@ -1,0 +1,8 @@
+(() => {
+  const wizard=document.getElementById("matchWizard"); if(!wizard)return;
+  const form=document.getElementById("travelMatchForm"),steps=[...form.querySelectorAll(".match-step")],next=document.getElementById("matchNext"),back=document.getElementById("matchBack"),bar=document.getElementById("matchProgressBar"),label=document.getElementById("matchStepLabel"); let current=0;
+  function show(){steps.forEach((s,i)=>s.classList.toggle("active",i===current));bar.style.width=((current+1)/steps.length*100)+"%";label.textContent="Domanda "+(current+1)+" di "+steps.length;back.hidden=current===0;next.textContent=current===steps.length-1?"Trova il mio Travel Match →":"Continua →";}
+  form.querySelectorAll(".match-options").forEach(group=>group.querySelectorAll("button").forEach(btn=>btn.addEventListener("click",()=>{group.querySelectorAll("button").forEach(b=>b.classList.remove("selected"));btn.classList.add("selected");const hidden=group.parentElement.querySelector('input[type="hidden"]');if(hidden)hidden.value=btn.dataset.value;})));
+  next.addEventListener("click",()=>{if(current===0){const d=form.elements.destination;if(!d.value.trim()&&!form.elements.undecided.checked){d.focus();return;}} if(current===steps.length-1){if(!form.reportValidity())return;const data=Object.fromEntries(new FormData(form).entries());sessionStorage.setItem("partiBeneTravelMatch",JSON.stringify(data));const q=new URLSearchParams();Object.entries(data).forEach(([k,v])=>q.set(k,v));location.href="richiedi-proposte.html?travelmatch=1&"+q.toString();return;} current++;show();});
+  back.addEventListener("click",()=>{if(current>0){current--;show();}});show();
+})();
