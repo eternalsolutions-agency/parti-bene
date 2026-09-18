@@ -6,12 +6,12 @@ const TRAVEL_REQUESTS_TABLE_ID = "6aa96117003d70271c30";
 const ASSIGNMENTS_TABLE_ID = "6aa963d800048778c6e3";
 
 function adminClient(req) {
-  // Use the project's public regional endpoint. Some Function runtimes expose
-  // APPWRITE_FUNCTION_API_ENDPOINT as an executor-internal address that is not
-  // reachable by the Node SDK and results in a generic "fetch failed".
-  const endpoint = "https://fra.cloud.appwrite.io/v1";
+  const endpoint = process.env.APPWRITE_FUNCTION_API_ENDPOINT || "https://fra.cloud.appwrite.io/v1";
   const project = process.env.APPWRITE_FUNCTION_PROJECT_ID || "6aa8e03b000fb4dd909e";
-  const key = req.headers["x-appwrite-key"];
+  // Appwrite exposes the dynamic server key as an execution header and, in
+  // current runtimes, as APPWRITE_FUNCTION_API_KEY. Prefer the environment
+  // variable because Console executions may not surface the header uniformly.
+  const key = process.env.APPWRITE_FUNCTION_API_KEY || req.headers["x-appwrite-key"];
   if (!key) throw new Error("Chiave server Appwrite non disponibile per questa esecuzione.");
   return new Client().setEndpoint(endpoint).setProject(project).setKey(key);
 }
