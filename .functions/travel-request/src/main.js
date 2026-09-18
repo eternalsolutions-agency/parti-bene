@@ -118,6 +118,7 @@ export default async ({ req, res, error }) => {
           rowId: ID.unique(),
           data: {
             utente_id: professional.utente_id,
+            professionista_id: professional.$id,
             richiesta_id: request.$id,
             stato: "nuova",
             letta: false
