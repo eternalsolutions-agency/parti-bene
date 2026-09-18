@@ -6,7 +6,10 @@ const TRAVEL_REQUESTS_TABLE_ID = "6aa96117003d70271c30";
 const ASSIGNMENTS_TABLE_ID = "6aa963d800048778c6e3";
 
 function adminClient(req) {
-  const endpoint = process.env.APPWRITE_FUNCTION_API_ENDPOINT || "https://fra.cloud.appwrite.io/v1";
+  // Use the project's public regional endpoint. Some Function runtimes expose
+  // APPWRITE_FUNCTION_API_ENDPOINT as an executor-internal address that is not
+  // reachable by the Node SDK and results in a generic "fetch failed".
+  const endpoint = "https://fra.cloud.appwrite.io/v1";
   const project = process.env.APPWRITE_FUNCTION_PROJECT_ID || "6aa8e03b000fb4dd909e";
   const key = req.headers["x-appwrite-key"];
   if (!key) throw new Error("Chiave server Appwrite non disponibile per questa esecuzione.");
