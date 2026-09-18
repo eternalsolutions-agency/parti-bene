@@ -312,9 +312,7 @@ try {
   if (requests.length) {
     renderRequest(requests[0]);
     if (requests[0].stato === "approvata") await loadOwnedProfile(user, requests[0]);
-  }
-  await loadClientRequests();
-  else {
+  } else {
     // Approved professionals may not have the application row ID in this
     // browser (older signup/test accounts). Load the owned public profile
     // without trying to enumerate the private applications table.
@@ -324,6 +322,8 @@ try {
       document.getElementById("emptyPanel").hidden = false;
       document.getElementById("emptyPanel").classList.add("view-ready");
     }
+  }
+  await loadClientRequests();
   }
 } catch (error) {
   try { await account.get(); }
