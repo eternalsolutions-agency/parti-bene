@@ -55,7 +55,10 @@ export default async ({ req, res, error }) => {
   }
 
   const action = body.action || "create";
-  const userId = req.headers["x-appwrite-user-id"] || null;
+  // When invoked through the Functions Executions API the end-user identity
+  // is available to the function as APPWRITE_FUNCTION_USER_ID. Keep the
+  // header fallback for direct/runtime-compatible invocations.
+  const userId = process.env.APPWRITE_FUNCTION_USER_ID || req.headers["x-appwrite-user-id"] || null;
 
   try {
     const tables = new TablesDB(adminClient(req));
