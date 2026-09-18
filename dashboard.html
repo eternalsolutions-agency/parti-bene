@@ -269,7 +269,7 @@ async function loadOwnedProfile(user, application) {
   document.getElementById("publicProfileLink").href="profilo.html?slug="+encodeURIComponent(currentProfile.slug);
   offersManager.hidden=false;
   offersManager.classList.add("view-ready");
-  await Promise.all([loadMyOffers(user.$id),loadClientRequests(user.$id)]);
+  await loadMyOffers(user.$id);
 }
 function renderRequest(row) {
   document.getElementById("loadingPanel").hidden = true;
@@ -302,35 +302,6 @@ function renderRequest(row) {
     document.getElementById("mediaGrid").innerHTML = files.map(file => '<img src="'+fileUrl(file.id)+'" alt="'+file.alt+'">').join("");
   }
 }
-try {
-  const user = await account.get();
-  setText("userName", user.name, "Professionista");
-  setText("userEmail", user.email);
-  document.getElementById("userAvatar").textContent = (user.name || "PB").split(" ").map(part => part[0]).slice(0,2).join("").toUpperCase();
-  document.getElementById("adminLink").hidden = !(user.labels || []).includes("admin");
-  const requests = await listMyRequests(user.$id);
-  if (requests.length) {
-    renderRequest(requests[0]);
-    if (requests[0].stato === "approvata") await loadOwnedProfile(user, requests[0]);
-  } else {
-    // Approved professionals may not have the application row ID in this
-    // browser (older signup/test accounts). Load the owned public profile
-    // without trying to enumerate the private applications table.
-    await loadOwnedProfile(user, null);
-    document.getElementById("loadingPanel").hidden = true;
-    if (!currentProfile) {
-      document.getElementById("emptyPanel").hidden = false;
-      document.getElementById("emptyPanel").classList.add("view-ready");
-    }
-  }
-  await loadClientRequests();
-} catch (error) {
-  try { await account.get(); }
-  catch (_) { location.replace("accedi.html?redirect=dashboard.html"); }
-  document.getElementById("loadingPanel").textContent = readableError(error);
-}
-
-
 async function travelRequestFunction(action,payload={}){
  const response=await fetch(APPWRITE_CONFIG.endpoint+"/functions/"+APPWRITE_CONFIG.travelRequestFunctionId+"/executions",{
   method:"POST",credentials:"include",
@@ -380,6 +351,38 @@ clientRequestsList.addEventListener("submit",async event=>{
  }catch(error){alert(error.message||readableError(error));}
  finally{button.disabled=false;button.textContent="Salva la risposta";}
 });
+
+
+try {
+  const user = await account.get();
+  setText("userName", user.name, "Professionista");
+  setText("userEmail", user.email);
+  document.getElementById("userAvatar").textContent = (user.name || "PB").split(" ").map(part => part[0]).slice(0,2).join("").toUpperCase();
+  document.getElementById("adminLink").hidden = !(user.labels || []).includes("admin");
+  const requests = await listMyRequests(user.$id);
+  if (requests.length) {
+    renderRequest(requests[0]);
+    if (requests[0].stato === "approvata") await loadOwnedProfile(user, requests[0]);
+  } else {
+    // Approved professionals may not have the application row ID in this
+    // browser (older signup/test accounts). Load the owned public profile
+    // without trying to enumerate the private applications table.
+    await loadOwnedProfile(user, null);
+    document.getElementById("loadingPanel").hidden = true;
+    if (!currentProfile) {
+      document.getElementById("emptyPanel").hidden = false;
+      document.getElementById("emptyPanel").classList.add("view-ready");
+    }
+  }
+  await loadClientRequests();
+  document.getElementById("loadingPanel").hidden = true;
+} catch (error) {
+  try { await account.get(); }
+  catch (_) { location.replace("accedi.html?redirect=dashboard.html"); }
+  document.getElementById("loadingPanel").textContent = readableError(error);
+}
+
+
 
 function offerPermissions(userId,status){
  const permissions=[Permission.read(Role.user(userId)),Permission.update(Role.user(userId)),Permission.delete(Role.user(userId)),Permission.update(Role.label("admin")),Permission.delete(Role.label("admin"))];
