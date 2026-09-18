@@ -47,6 +47,12 @@
 <div class="form-field"><label>Provincia *</label><input name="province" required maxlength="2" placeholder="RM"></div>
 <div class="form-field full" id="addressField"><label>Indirizzo della sede</label><input name="address" autocomplete="street-address"><small class="meta">Potrai scegliere successivamente se mostrarlo pubblicamente.</small></div>
 <div class="form-field full"><label>Modalità di consulenza *</label><div class="check-grid"><label class="check-card"><input type="checkbox" name="mode" value="office"> In sede</label><label class="check-card"><input type="checkbox" name="mode" value="online"> Online</label><label class="check-card"><input type="checkbox" name="mode" value="appointment"> Su appuntamento</label></div></div>
+<div class="form-section form-field full"><h3>Come vuoi ricevere le richieste?</h3><p>Questa preferenza sarà usata dal Travel Match per mostrarti soltanto richieste coerenti con il tuo modo di lavorare.</p></div>
+<div class="form-field full"><div class="check-grid consultation-preference">
+<label class="check-card"><input type="radio" name="request_preference" value="free" required> <span><strong>Richieste gratuite</strong><small>Offro gratuitamente il primo contatto.</small></span></label>
+<label class="check-card"><input type="radio" name="request_preference" value="paid" required> <span><strong>Richieste professionali</strong><small>Accetto richieste con consulenza valorizzata secondo la tariffa PARTI BENE.</small></span></label>
+<label class="check-card"><input type="radio" name="request_preference" value="both" required checked> <span><strong>Entrambe</strong><small>Posso ricevere sia richieste gratuite sia professionali.</small></span></label>
+</div><div class="safe-note">La preferenza potrà essere modificata dalla dashboard. Le richieste a pagamento saranno attivate quando sarà operativo il relativo flusso di pagamento.</div></div>
 <div class="form-section form-field full"><h3>Specializzazioni</h3><p>Seleziona le aree principali: potranno essere ampliate dall’area riservata.</p></div>
 <div class="form-field full"><div class="check-grid">
 <label class="check-card"><input type="checkbox" name="specialization" value="honeymoon"> Viaggi di nozze</label>
@@ -237,7 +243,7 @@ form.addEventListener("submit", async event => {
       modalita_consulenza: modalita,
       specializzazioni: data.getAll("specialization"),
       destinazioni: String(data.get("destinations") || "").split(",").map(value => value.trim()).filter(Boolean),
-      presentazione: String(data.get("bio")).trim(),
+      presentazione: String(data.get("bio")).trim()+"\n\n[Preferenza richieste: "+String(data.get("request_preference")||"both")+"]",
       logo_file_id: logoId,
       copertina_file_id: coverId,
       stato: "in_attesa",
