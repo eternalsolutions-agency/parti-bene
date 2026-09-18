@@ -324,7 +324,6 @@ try {
     }
   }
   await loadClientRequests();
-  }
 } catch (error) {
   try { await account.get(); }
   catch (_) { location.replace("accedi.html?redirect=dashboard.html"); }
