@@ -385,3 +385,12 @@ footer{border-top:5px solid var(--orange)}
   .home-video-hero .match-question{font-size:22px}
   .home-video-hero .match-photo-options button img{height:68px}
 }
+
+
+/* Profilo professionista: valore e compatibilità */
+.profile-about-panel .section-copy{font-size:15px;line-height:1.75}
+.profile-fit-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0 4px}
+.profile-fit-grid>div{padding:15px 16px;border:1px solid #d8ece8;border-radius:15px;background:linear-gradient(145deg,#f4fbfa,#fff)}
+.profile-fit-grid span{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.profile-fit-grid strong{display:block;color:var(--navy);font-size:14px;line-height:1.4}
+@media(max-width:620px){.profile-fit-grid{grid-template-columns:1fr}}
