@@ -1,82 +1,33 @@
+import { APPWRITE_CONFIG, functions } from "./appwrite-config.js";
+import { getDestinationImage } from "./destination-images.js";
 
-    const professionals = [
-      {name:"Orizzonte Viaggi Roma", initials:"OV", image:"https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=900&q=80", city:"Roma", lat:41.9028, lon:12.4964, modes:["local","online"], tags:["Giappone","Tour organizzati","Famiglie"], filters:["local","online"], rating:"Profilo dimostrativo"},
-      {name:"Elena Travel Designer", initials:"ET", image:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80", city:"Milano · Online in tutta Italia", lat:45.4642, lon:9.1900, modes:["online"], tags:["Viaggi di nozze","Maldive","Su misura"], filters:["online","nozze"], rating:"Profilo dimostrativo"},
-      {name:"Rotte Blu Crociere", initials:"RB", image:"https://images.unsplash.com/photo-1548574505-5e239809ee19?auto=format&fit=crop&w=900&q=80", city:"Napoli", lat:40.8518, lon:14.2681, modes:["local","online"], tags:["Crociere","Mediterraneo","Gruppi"], filters:["local","online","crociere"], rating:"Profilo dimostrativo"},
-      {name:"Toscana Travel Lab", initials:"TL", image:"https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=900&q=80", city:"Firenze", lat:43.7696, lon:11.2558, modes:["local"], tags:["Europa","Weekend","Famiglie"], filters:["local"], rating:"Profilo dimostrativo"},
-      {name:"Marco Viaggi Accessibili", initials:"MV", image:"https://images.unsplash.com/photo-1530789253388-582c481c54b0?auto=format&fit=crop&w=900&q=80", city:"Bologna · Online", lat:44.4949, lon:11.3426, modes:["local","online"], tags:["Turismo accessibile","Italia","Su misura"], filters:["local","online"], rating:"Profilo dimostrativo"},
-      {name:"Sicilia Mondo Tour", initials:"SM", image:"https://images.unsplash.com/photo-1489493585363-d69421e0edd3?auto=format&fit=crop&w=900&q=80", city:"Palermo", lat:38.1157, lon:13.3615, modes:["local","online"], tags:["Sicilia","Incoming","Tour di gruppo"], filters:["local","online"], rating:"Profilo dimostrativo"}
-    ];
-    let activeFilter = "all";
-    let userPosition = null;
-    let searchTerm = "";
+const cards=document.getElementById("cards");
+const filters=document.getElementById("filters");
+const empty=document.getElementById("empty");
+let professionals=[],activeFilter="all";
 
-    function distanceKm(a,b,c,d){
-      const R=6371, toRad=x=>x*Math.PI/180;
-      const dLat=toRad(c-a), dLon=toRad(d-b);
-      const q=Math.sin(dLat/2)**2+Math.cos(toRad(a))*Math.cos(toRad(c))*Math.sin(dLon/2)**2;
-      return 2*R*Math.asin(Math.sqrt(q));
-    }
-
-    function renderCards(){
-      const cards=document.getElementById("cards");
-      let list=professionals.map(p=>({...p,distance:userPosition?distanceKm(userPosition.lat,userPosition.lon,p.lat,p.lon):null}));
-      if(userPosition) list.sort((a,b)=>a.distance-b.distance);
-      list=list.filter(p=>{
-        const filterOk=activeFilter==="all"||p.filters.includes(activeFilter);
-        const hay=(p.name+" "+p.city+" "+p.tags.join(" ")).toLowerCase();
-        return filterOk&&(!searchTerm||hay.includes(searchTerm));
-      });
-      cards.innerHTML=list.map(p=>
-        '<article class="card">'+
-          '<div class="card-top" style="background-image:url('+p.image+')"><div class="avatar">'+p.initials+'</div><div class="verified">✓ Verificabile</div></div>'+
-          '<div class="card-body"><h3>'+p.name+'</h3><div class="meta">'+p.city+' · '+p.rating+'</div>'+
-          '<div class="tags">'+p.tags.map(t=>'<span class="tag">'+t+'</span>').join("")+'</div>'+
-          '<div class="distance">'+(p.distance!==null?p.distance.toFixed(1)+' km dalla tua posizione':p.modes.includes("online")?'Disponibile anche online':'Disponibile in sede')+'</div>'+
-          '<div class="card-actions"><a class="btn btn-ghost" href="profilo.html">Vedi profilo</a><a class="btn btn-primary" href="contatti.html">Preventivo</a></div></div>'+
-        '</article>'
-      ).join("");
-      document.getElementById("empty").style.display=list.length?"none":"block";
-    }
-
-    function askPosition(){
-      const status=document.getElementById("geoStatus");
-      if(!navigator.geolocation){status.textContent="Il tuo browser non supporta la geolocalizzazione.";return}
-      status.textContent="Ricerca della posizione in corso…";
-      navigator.geolocation.getCurrentPosition(
-        pos=>{
-          userPosition={lat:pos.coords.latitude,lon:pos.coords.longitude};
-          document.getElementById("assistance").value="local";
-          activeFilter="local";
-          document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active",c.dataset.filter==="local"));
-          status.textContent="Posizione rilevata. I risultati sono ordinati per distanza.";
-          renderCards();
-          document.getElementById("professionisti").scrollIntoView({behavior:"smooth"});
-        },
-        err=>{
-          const messages={1:"Permesso non concesso. Puoi cercare manualmente per città o CAP.",2:"Posizione non disponibile. Riprova oppure inserisci la città.",3:"La richiesta è scaduta. Riprova tra qualche istante."};
-          status.textContent=messages[err.code]||"Non è stato possibile rilevare la posizione.";
-        },
-        {enableHighAccuracy:false,timeout:10000,maximumAge:300000}
-      );
-    }
-
-    document.getElementById("geoButton").addEventListener("click",askPosition);
-    document.getElementById("pathGeo").addEventListener("click",askPosition);
-    document.getElementById("filters").addEventListener("click",e=>{
-      if(!e.target.matches(".chip"))return;
-      activeFilter=e.target.dataset.filter;
-      document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active",c===e.target));
-      renderCards();
-    });
-    document.getElementById("searchForm").addEventListener("submit",e=>{
-      e.preventDefault();
-      searchTerm=document.getElementById("destination").value.trim().toLowerCase();
-      const assistance=document.getElementById("assistance").value;
-      activeFilter=assistance;
-      document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active",c.dataset.filter===activeFilter));
-      renderCards();
-      document.getElementById("professionisti").scrollIntoView({behavior:"smooth"});
-    });
-    renderCards();
-  
+function escapeHtml(value=""){return String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));}
+function initials(name=""){return name.split(" ").filter(Boolean).map(x=>x[0]).slice(0,2).join("").toUpperCase()||"PB";}
+function modeFilter(p){if(activeFilter==="all")return true;if(activeFilter==="online")return p.disponibile_online;if(activeFilter==="local")return Boolean(p.comune);const hay=(p.specializzazioni||[]).join(" ").toLowerCase();return activeFilter==="crociere"?hay.includes("croci"):activeFilter==="nozze"?hay.includes("nozze"):true;}
+function renderCards(){
+ if(!cards)return;
+ const list=professionals.filter(modeFilter).slice(0,6);
+ cards.innerHTML=list.map(p=>{
+  const tags=[...(p.specializzazioni||[]),...(p.destinazioni||[])].slice(0,3);
+  const verified=p.profilo_verificato?"✓ Profilo verificato":"Profilo registrato";
+  return '<article class="card"><div class="card-top" style="background-image:url('+getDestinationImage(p.destinazioni,p.nome+" "+(p.descrizione||""))+')"><div class="avatar">'+initials(p.nome)+'</div><div class="verified">'+verified+'</div></div><div class="card-body"><h3>'+escapeHtml(p.nome)+'</h3><div class="meta">'+escapeHtml([p.comune,p.provincia,p.disponibile_online?"Online":null].filter(Boolean).join(" · ")||"Consulenza di viaggio")+'</div><div class="tags">'+tags.map(t=>'<span class="tag">'+escapeHtml(t)+'</span>').join("")+'</div><div class="card-actions"><a class="btn btn-ghost" href="profilo.html?slug='+encodeURIComponent(p.slug)+'">Vedi profilo</a><a class="btn btn-primary" href="richiedi-proposte.html?professionista='+encodeURIComponent(p.slug)+'">Richiedi consulenza</a></div></div></article>';
+ }).join("");
+ if(empty){empty.style.display=list.length?"none":"block";if(!list.length)empty.innerHTML="<h3>Stiamo selezionando nuovi professionisti</h3><p>Usa il Travel Match: ti mostreremo i profili disponibili e compatibili con il tuo viaggio.</p>";}
+}
+async function loadProfessionals(){
+ try{
+  const execution=await functions.createExecution({functionId:APPWRITE_CONFIG.travelRequestFunctionId,body:JSON.stringify({action:"public-professionals"}),async:false,path:"/",method:"POST",headers:{"content-type":"application/json"}});
+  const result=JSON.parse(execution.responseBody||"{}");
+  if(Number(execution.responseStatusCode||0)>=400)throw new Error();
+  professionals=result.items||[];
+ }catch(_){professionals=[];}
+ renderCards();
+}
+filters?.addEventListener("click",e=>{const chip=e.target.closest(".chip");if(!chip)return;activeFilter=chip.dataset.filter;filters.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active",c===chip));renderCards();});
+document.getElementById("pathGeo")?.addEventListener("click",()=>{location.href="professionisti.html";});
+loadProfessionals();
