@@ -159,6 +159,30 @@ export default async ({ req, res, error }) => {
       return res.json({ ok: true, requestId: request.$id, assigned: Boolean(assignment) }, 201);
     }
 
+    if (action === "traveler-status") {
+      const requestId = cleanText(body.requestId, 80);
+      const accessKey = cleanText(body.accessKey, 254)?.toLowerCase();
+      if (!requestId || !accessKey) return res.json({ error: "Dati di accesso alla richiesta mancanti." }, 400);
+      const request = await tables.getRow({ databaseId: DATABASE_ID, tableId: TRAVEL_REQUESTS_TABLE_ID, rowId: requestId });
+      if (String(request.email || "").trim().toLowerCase() !== accessKey) return res.json({ error: "Richiesta non trovata." }, 404);
+      const allAssignments = await tables.listRows({ databaseId: DATABASE_ID, tableId: ASSIGNMENTS_TABLE_ID, queries: [Query.orderDesc("$createdAt"), Query.limit(100)] });
+      const related = (allAssignments.rows || []).filter(row => String(row.richiesta_id || "") === String(requestId));
+      const professionalIds = [...new Set(related.map(row => row.professionista_id).filter(Boolean))];
+      const professionalNames = {};
+      for (const id of professionalIds) {
+        try { const p = await tables.getRow({databaseId:DATABASE_ID,tableId:PROFESSIONALS_TABLE_ID,rowId:id}); professionalNames[id] = p.nome || "Professionista"; } catch {}
+      }
+      const assignments = related.map(row => ({
+        $id: row.$id,
+        stato: row.stato,
+        data_risposta: row.data_risposta || null,
+        messaggio_professionista: row.stato === "risposta" ? row.messaggio_professionista || "" : null,
+        proposta_economica: row.stato === "risposta" ? row.proposta_economica ?? null : null,
+        professionista: professionalNames[row.professionista_id] || "Professionista PARTI BENE"
+      }));
+      return res.json({ ok:true, request:{ $id:request.$id, tipologia_viaggio:request.tipologia_viaggio, destinazione:request.destinazione, partenza_da:request.partenza_da, periodo:request.periodo, adulti:request.adulti, bambini:request.bambini, budget:request.budget, assistenza:request.assistenza, stato:request.stato, numero_assegnazioni:request.numero_assegnazioni, $createdAt:request.$createdAt }, assignments });
+    }
+
     if (action === "public-professionals") {
       const profiles = await tables.listRows({
         databaseId: DATABASE_ID,
