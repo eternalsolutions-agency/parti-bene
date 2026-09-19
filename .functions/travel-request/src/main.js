@@ -216,6 +216,9 @@ export default async ({ req, res, error }) => {
         comune: row.comune,
         provincia: row.provincia,
         disponibile_online: Boolean(row.disponibile_online),
+        cliente_ideale: row.cliente_ideale || [],
+        fasce_budget: row.fasce_budget || [],
+        accetta_richieste: row.accetta_richieste !== false,
         specializzazioni: row.specializzazioni || [],
         destinazioni: row.destinazioni || [],
         profilo_verificato: Boolean(row.profilo_verificato),
@@ -246,10 +249,11 @@ export default async ({ req, res, error }) => {
       const profile = (profiles.rows || []).find(row => String(row.utente_id || "") === String(userId));
       if (!profile) return res.json({ error: "Profilo professionale non trovato." }, 404);
       const source = body.profile || {};
-      const existingPreference = String(profile.descrizione || "").match(/\[Preferenza richieste:\s*(free|paid|both)\]/i)?.[0] || "";
+      const existingPreference = String(profile.descrizione || "").match(/\[Preferenza richieste:\s*(free|paid|both)\]/i)?.[1] || "both";
+      const requestedPreference = ["free","paid","both"].includes(source.request_preference) ? source.request_preference : existingPreference;
       let description = cleanText(source.descrizione, 2000) || "";
-      description = description.replace(/\n*\[Preferenza richieste:\s*(free|paid|both)\]\s*$/i, "").trim();
-      if (existingPreference) description += (description ? "\n\n" : "") + existingPreference;
+      description = description.replace(/\s*\[Preferenza richieste:\s*(free|paid|both)\]\s*/gi, " ").trim();
+      description += (description ? "\n\n" : "") + "[Preferenza richieste: " + requestedPreference + "]";
       const data = {
         nome: cleanText(source.nome, 180) || profile.nome,
         comune: cleanText(source.comune, 120),
@@ -257,7 +261,10 @@ export default async ({ req, res, error }) => {
         descrizione: description,
         specializzazioni: Array.isArray(source.specializzazioni) ? source.specializzazioni.map(v => cleanText(v, 100)).filter(Boolean).slice(0, 30) : [],
         destinazioni: Array.isArray(source.destinazioni) ? source.destinazioni.map(v => cleanText(v, 100)).filter(Boolean).slice(0, 50) : [],
-        disponibile_online: source.disponibile_online === true
+        disponibile_online: source.disponibile_online === true,
+        cliente_ideale: Array.isArray(source.cliente_ideale) ? source.cliente_ideale.map(v => cleanText(v, 50)).filter(Boolean).slice(0, 12) : (profile.cliente_ideale || []),
+        fasce_budget: Array.isArray(source.fasce_budget) ? source.fasce_budget.map(v => cleanText(v, 30)).filter(Boolean).slice(0, 8) : (profile.fasce_budget || []),
+        accetta_richieste: source.accetta_richieste !== false
       };
       const updated = await tables.updateRow({databaseId:DATABASE_ID,tableId:PROFESSIONALS_TABLE_ID,rowId:profile.$id,data});
       return res.json({ ok: true, profile: updated });
