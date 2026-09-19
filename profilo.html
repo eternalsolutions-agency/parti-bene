@@ -25,13 +25,19 @@
 <div class="profile-layout"><div>
 <div class="panel"><div class="profile-title"><div><div id="profileKicker" class="kicker"></div><h1 id="profileName"></h1><p id="profileDescription" class="section-copy"></p></div><span id="profileBadge" class="tag"></span></div>
 <div class="profile-stats"><div class="profile-stat"><strong id="profileCity">—</strong><span>Località</span></div><div class="profile-stat"><strong id="profileMode">—</strong><span>Modalità</span></div><div class="profile-stat"><strong id="profileSpecialtyCount">0</strong><span>Specializzazioni</span></div></div></div>
-<div class="panel"><h2>Conosci il professionista</h2><p id="aboutText" class="section-copy"></p><h3 style="margin-top:25px">Specializzazioni</h3><div id="specialtyTags" class="tags"></div><h3 style="margin-top:25px">Destinazioni</h3><div id="destinationTags" class="tags"></div></div>
+<div class="panel profile-about-panel"><div class="kicker">Perché sceglierlo</div><h2>Conosci il professionista</h2><p id="aboutText" class="section-copy"></p>
+<div class="profile-fit-grid">
+  <div><span>Ideale se cerchi</span><strong id="profileFit">Consulenza personalizzata</strong></div>
+  <div><span>Primo contatto</span><strong id="profileConsultation">Da concordare</strong></div>
+</div>
+<h3 style="margin-top:25px">Specializzazioni</h3><div id="specialtyTags" class="tags"></div><h3 style="margin-top:25px">Destinazioni</h3><div id="destinationTags" class="tags"></div></div>
 <div id="profileOffersPanel" class="panel" hidden><h2>Offerte pubblicate</h2><div id="profileOffers" class="profile-offers"></div></div>
 <div class="panel"><h2>Informazioni professionali</h2><div class="info-list">
 <div class="info-item"><span>Tipologia</span><strong id="infoType"></strong></div>
 <div class="info-item"><span>Modalità</span><strong id="infoMode"></strong></div>
 <div class="info-item"><span>Località</span><strong id="infoLocation"></strong></div>
 <div class="info-item"><span>Profilo</span><strong id="infoStatus"></strong></div>
+<div class="info-item"><span>Consulenza</span><strong id="infoConsultation"></strong></div>
 </div></div>
 </div>
 <aside class="panel sticky-contact"><div class="kicker">Richiedi informazioni</div><h3>Racconta il viaggio che desideri</h3><p class="section-copy">La richiesta sarà gestita attraverso Parti Bene senza rendere pubblici i dati personali del professionista.</p><a id="proposalLink" class="btn btn-primary" href="richiedi-proposte.html" style="width:100%;margin-top:18px">Richiedi una proposta</a><a class="btn btn-ghost" href="professionisti.html" style="width:100%;margin-top:12px">Torna ai risultati</a></aside>
@@ -51,6 +57,9 @@ import { getDestinationImage } from "./destination-images.js";
 const params=new URLSearchParams(location.search),slug=params.get("slug");
 const message=document.getElementById("profileMessage"),content=document.getElementById("profileContent");
 function setText(id,value,fallback="Non indicato"){document.getElementById(id).textContent=value||fallback;}
+function cleanDescription(value=""){return String(value).replace(/\s*\[Preferenza richieste: (free|paid|both)\]\s*/gi," ").trim();}
+function requestPreference(value=""){const m=String(value).match(/\[Preferenza richieste: (free|paid|both)\]/i);return m?m[1]:"both";}
+function consultationLabel(pref){return pref==="free"?"Primo contatto gratuito":pref==="paid"?"Consulenza professionale":"Gratuita o professionale";}
 function renderTags(id,values){const list=Array.isArray(values)?values:[];document.getElementById(id).innerHTML=list.length?list.map(value=>'<span class="tag">'+String(value).replace(/[<>&"]/g,"")+'</span>').join(""):'<span class="meta">Non indicate</span>';}
 async function load(){
  if(!slug){message.innerHTML='<h2>Profilo non indicato</h2><p><a class="text-link" href="professionisti.html">Torna ai professionisti →</a></p>';return;}
@@ -63,7 +72,10 @@ async function load(){
   document.title=profile.nome+" | Parti Bene";
   setText("breadcrumbName",profile.nome);setText("profileName",profile.nome);
   setText("profileKicker",profile.tipologia==="agenzia"?"Agenzia di viaggio":"Consulente di viaggio");
-  setText("profileDescription",profile.descrizione);setText("aboutText",profile.descrizione);
+  const publicDescription=cleanDescription(profile.descrizione),pref=requestPreference(profile.descrizione);
+  setText("profileDescription",publicDescription);setText("aboutText",publicDescription);
+  const fit=(profile.specializzazioni||[]).slice(0,2).join(" · ")||(profile.destinazioni||[]).slice(0,2).join(" · ")||"Consulenza personalizzata";
+  setText("profileFit",fit);setText("profileConsultation",consultationLabel(pref));setText("infoConsultation",consultationLabel(pref));
   setText("profileCity",[profile.comune,profile.provincia].filter(Boolean).join(" · "));
   const mode=profile.disponibile_online?"Online":"In sede";
   setText("profileMode",mode);setText("infoMode",mode);
@@ -73,7 +85,7 @@ async function load(){
   setText("infoStatus",profile.profilo_verificato?"Verificato da Parti Bene":"Profilo registrato");
   setText("profileBadge",profile.profilo_verificato?"✓ Verificato":"Profilo registrato");
   renderTags("specialtyTags",profile.specializzazioni);renderTags("destinationTags",profile.destinazioni);
-  document.getElementById("profileCover").style.backgroundImage="linear-gradient(90deg,rgba(6,46,89,.3),rgba(6,46,89,.05)),url('"+getDestinationImage(profile.destinazioni,profile.nome+" "+(profile.descrizione||""))+"')";
+  document.getElementById("profileCover").style.backgroundImage="linear-gradient(90deg,rgba(6,46,89,.3),rgba(6,46,89,.05)),url('"+getDestinationImage(profile.destinazioni,profile.nome+" "+publicDescription)+"')";
   document.getElementById("proposalLink").href="richiedi-proposte.html?professionista="+encodeURIComponent(profile.slug);
   const offerResponse=await fetch(APPWRITE_CONFIG.endpoint+"/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.offersTableId+"/rows",{headers:{"X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"}});
   const offerResult=await offerResponse.json().catch(()=>({}));
