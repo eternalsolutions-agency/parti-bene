@@ -89,7 +89,7 @@ export default async ({ req, res, error }) => {
         if (value) payload[key] = value;
       }
       if (!payload.privacy_accettata) return res.json({ error: "È necessario accettare l'informativa privacy." }, 400);
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(payload.email)) return res.json({ error: "Inserisci un indirizzo email valido." }, 400);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) return res.json({ error: "Inserisci un indirizzo email valido." }, 400);
 
       // Lightweight abuse protection without exposing PII or requiring a public table.
       // Block immediate duplicates and excessive submissions from the same contact.
