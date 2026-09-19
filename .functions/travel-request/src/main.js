@@ -1,4 +1,5 @@
 import { Client, TablesDB, ID, Query } from "node-appwrite";
+import crypto from "node:crypto";
 
 const DATABASE_ID = "6aa8e1a70039d07d09d6";
 const PROFESSIONALS_TABLE_ID = "6aa8e22900034b468dc2";
@@ -20,6 +21,21 @@ function cleanText(value, max = 500) {
   if (value === null || value === undefined) return null;
   const text = String(value).trim();
   return text ? text.slice(0, max) : null;
+}
+
+function travelerSecret() {
+  const secret = process.env.PARTI_BENE_TRAVELER_SECRET;
+  if (!secret || secret.length < 32) throw new Error("PARTI_BENE_TRAVELER_SECRET non configurato o troppo corto.");
+  return secret;
+}
+
+function travelerToken(requestId, email) {
+  return crypto.createHmac("sha256", travelerSecret()).update(String(requestId) + ":" + String(email).trim().toLowerCase()).digest("base64url");
+}
+
+function safeEqual(a, b) {
+  const x = Buffer.from(String(a || "")); const y = Buffer.from(String(b || ""));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
 }
 
 function publicRequest(request, accepted) {
@@ -89,7 +105,7 @@ export default async ({ req, res, error }) => {
         if (value) payload[key] = value;
       }
       if (!payload.privacy_accettata) return res.json({ error: "È necessario accettare l'informativa privacy." }, 400);
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(payload.email)) return res.json({ error: "Inserisci un indirizzo email valido." }, 400);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) return res.json({ error: "Inserisci un indirizzo email valido." }, 400);
 
       // Lightweight abuse protection without exposing PII or requiring a public table.
       // Block immediate duplicates and excessive submissions from the same contact.
@@ -156,7 +172,33 @@ export default async ({ req, res, error }) => {
         });
       }
 
-      return res.json({ ok: true, requestId: request.$id, assigned: Boolean(assignment) }, 201);
+      const accessToken = travelerToken(request.$id, payload.email);
+      return res.json({ ok: true, requestId: request.$id, accessToken, assigned: Boolean(assignment) }, 201);
+    }
+
+    if (action === "traveler-status") {
+      const requestId = cleanText(body.requestId, 80);
+      const accessToken = cleanText(body.accessToken, 500);
+      if (!requestId || !accessToken) return res.json({ error: "Dati di accesso alla richiesta mancanti." }, 400);
+      const request = await tables.getRow({ databaseId: DATABASE_ID, tableId: TRAVEL_REQUESTS_TABLE_ID, rowId: requestId });
+      const expectedToken = travelerToken(request.$id, request.email || "");
+      if (!safeEqual(accessToken, expectedToken)) return res.json({ error: "Richiesta non trovata." }, 404);
+      const allAssignments = await tables.listRows({ databaseId: DATABASE_ID, tableId: ASSIGNMENTS_TABLE_ID, queries: [Query.orderDesc("$createdAt"), Query.limit(100)] });
+      const related = (allAssignments.rows || []).filter(row => String(row.richiesta_id || "") === String(requestId));
+      const professionalIds = [...new Set(related.map(row => row.professionista_id).filter(Boolean))];
+      const professionalNames = {};
+      for (const id of professionalIds) {
+        try { const p = await tables.getRow({databaseId:DATABASE_ID,tableId:PROFESSIONALS_TABLE_ID,rowId:id}); professionalNames[id] = p.nome || "Professionista"; } catch {}
+      }
+      const assignments = related.map(row => ({
+        $id: row.$id,
+        stato: row.stato,
+        data_risposta: row.data_risposta || null,
+        messaggio_professionista: row.stato === "risposta" ? row.messaggio_professionista || "" : null,
+        proposta_economica: row.stato === "risposta" ? row.proposta_economica ?? null : null,
+        professionista: professionalNames[row.professionista_id] || "Professionista PARTI BENE"
+      }));
+      return res.json({ ok:true, request:{ $id:request.$id, tipologia_viaggio:request.tipologia_viaggio, destinazione:request.destinazione, partenza_da:request.partenza_da, periodo:request.periodo, adulti:request.adulti, bambini:request.bambini, budget:request.budget, assistenza:request.assistenza, stato:request.stato, numero_assegnazioni:request.numero_assegnazioni, $createdAt:request.$createdAt }, assignments });
     }
 
     if (action === "public-professionals") {
