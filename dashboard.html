@@ -146,7 +146,9 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 <div id="profileMessage" class="notice" role="status" aria-live="polite" hidden></div>
 </div>
 <div id="offersManager" class="panel dashboard-view" data-dashboard-view="offers" hidden>
-<div class="dashboard-section-head"><div><div class="kicker">Le tue proposte</div><h2 style="font-size:32px">Offerte di viaggio</h2><p class="section-copy">Crea una bozza oppure pubblica subito una proposta.</p></div><button id="newOfferButton" class="btn btn-primary" type="button">Nuova offerta</button></div>
+<div class="dashboard-section-head"><div><div class="kicker">Vetrina professionale</div><h2 style="font-size:32px">Le tue proposte di viaggio</h2><p class="section-copy">Trasforma il profilo in una vera vetrina: pubblica idee di viaggio che aiutino il cliente a capire subito cosa sai organizzare.</p></div><button id="newOfferButton" class="btn btn-primary" type="button">＋ Nuova proposta</button></div>
+<div class="vetrina-summary"><div><strong id="offerPublishedCount">0</strong><span>Pubblicate</span></div><div><strong id="offerDraftCount">0</strong><span>Bozze</span></div><div><strong id="offerSlots">10</strong><span>Posti disponibili</span></div></div>
+<div class="vetrina-tip">💡 <strong>Consiglio:</strong> usa titoli specifici, una bella immagine e una descrizione concreta. Il prezzo “da” è indicativo e sarà sempre confermato in consulenza.</div>
 <div id="offersList" class="offers-admin-list"></div>
 <form id="offerForm" class="form-grid offer-editor" hidden>
 <input type="hidden" name="offer_id">
@@ -426,6 +428,10 @@ async function loadMyOffers(userId){
  renderMyOffers();
 }
 function renderMyOffers(){
+ const published=myOffers.filter(row=>row.stato==="pubblicata").length,drafts=myOffers.filter(row=>row.stato==="bozza").length;
+ document.getElementById("offerPublishedCount").textContent=published;document.getElementById("offerDraftCount").textContent=drafts;document.getElementById("offerSlots").textContent=Math.max(0,10-myOffers.length);
+ document.getElementById("newOfferButton").disabled=myOffers.length>=10;
+ document.getElementById("newOfferButton").title=myOffers.length>=10?"Hai raggiunto il limite di 10 proposte attive/gestite nella vetrina":"";
  offersList.innerHTML=myOffers.length?myOffers.map(row=>'<article class="offer-admin-item"><div><h3>'+escapeOffer(row.titolo)+'</h3><p>'+escapeOffer(row.destinazione)+' · Da € '+Number(row.prezzo_da||0).toLocaleString("it-IT")+'</p><span class="offer-state">'+escapeOffer(row.stato)+'</span></div><div class="offer-admin-actions"><button class="btn btn-ghost" data-offer-edit="'+row.$id+'">Modifica</button><button class="btn btn-dark" data-offer-toggle="'+row.$id+'">'+(row.stato==="pubblicata"?"Disattiva":"Pubblica")+'</button><button class="btn btn-ghost" data-offer-delete="'+row.$id+'">Elimina</button></div></article>').join(""):'<div class="notice">Non hai ancora creato offerte di viaggio.</div>';
 }
 function escapeOffer(value=""){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]));}
@@ -435,7 +441,7 @@ function openOfferForm(row=null){
  if(row){["titolo","destinazione","tipologia","descrizione","prezzo_da","durata","periodo","partenza_da","servizi_inclusi","stato"].forEach(key=>offerForm.elements[key].value=row[key]??"");}
  offerForm.scrollIntoView({behavior:"smooth",block:"start"});
 }
-document.getElementById("newOfferButton").addEventListener("click",()=>openOfferForm());
+document.getElementById("newOfferButton").addEventListener("click",()=>{if(myOffers.length>=10){alert("Hai raggiunto il limite di 10 proposte nella Vetrina.");return;}openOfferForm();});
 document.getElementById("cancelOfferButton").addEventListener("click",()=>{offerForm.hidden=true;});
 offersList.addEventListener("click",async event=>{
  const edit=event.target.closest("[data-offer-edit]"),toggle=event.target.closest("[data-offer-toggle]"),del=event.target.closest("[data-offer-delete]");
@@ -459,6 +465,7 @@ offerForm.addEventListener("submit",async event=>{
  button.disabled=true;button.textContent="Salvataggio…";offerMessage.hidden=false;offerMessage.textContent="Operazione in corso…";
  try{
   const existing=myOffers.find(row=>row.$id===id);
+  if(!existing&&myOffers.length>=10)throw new Error("Hai raggiunto il limite di 10 proposte nella Vetrina.");
   const imageId=await uploadOfferImage(data.get("immagine"),currentProfile.utente_id);
   const offerData={professionista_id:currentProfile.$id,utente_id:currentProfile.utente_id,titolo:String(data.get("titolo")).trim(),destinazione:String(data.get("destinazione")).trim(),tipologia:String(data.get("tipologia")).trim(),descrizione:String(data.get("descrizione")).trim(),prezzo_da:Number(data.get("prezzo_da")),durata:String(data.get("durata")||"").trim()||null,periodo:String(data.get("periodo")||"").trim()||null,partenza_da:String(data.get("partenza_da")||"").trim()||null,servizi_inclusi:String(data.get("servizi_inclusi")||"").trim()||null,immagine_file_id:imageId||existing?.immagine_file_id||null,stato:String(data.get("stato")),in_evidenza:false};
   Object.keys(offerData).forEach(key=>{if(offerData[key]===null)delete offerData[key];});
