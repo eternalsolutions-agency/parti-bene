@@ -7,16 +7,16 @@
 <div class="traveler-timeline" id="travelerTimeline"></div>
 <div class="traveler-responses" id="travelerResponses"></div>
 </div><div id="travelerEmpty" class="empty" hidden><h3>Non troviamo una richiesta da mostrare</h3><p>Apri questa pagina dopo aver inviato un Travel Match da questo dispositivo.</p><a class="btn btn-primary" href="index.html#matchWizard">Inizia un Travel Match</a></div></div></section></main>
-<footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>I dati della richiesta sono accessibili solo tramite le informazioni salvate sul tuo dispositivo.</span></div></div></footer>
+<footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>L’accesso alla richiesta è protetto da un codice sicuro salvato sul tuo dispositivo.</span></div></div></footer>
 <script type="module">
 import { APPWRITE_CONFIG } from "./appwrite-config.js";
 const msg=document.getElementById("travelerMessage"),content=document.getElementById("travelerContent"),empty=document.getElementById("travelerEmpty");
 function esc(v=""){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 async function run(){
  let access={};try{access=JSON.parse(sessionStorage.getItem("partiBeneTravelerRequest")||localStorage.getItem("partiBeneTravelerRequest")||"{}");}catch(_){}
- if(!access.requestId||!access.email){msg.hidden=true;empty.hidden=false;return;}
+ if(!access.requestId||!access.accessToken){msg.hidden=true;empty.hidden=false;return;}
  try{
-  const r=await fetch(APPWRITE_CONFIG.endpoint+"/functions/"+APPWRITE_CONFIG.travelRequestFunctionId+"/executions",{method:"POST",headers:{"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"},body:JSON.stringify({body:JSON.stringify({action:"traveler-status",requestId:access.requestId,accessKey:access.email}),async:false,path:"/",method:"POST",headers:{"content-type":"application/json"}})});
+  const r=await fetch(APPWRITE_CONFIG.endpoint+"/functions/"+APPWRITE_CONFIG.travelRequestFunctionId+"/executions",{method:"POST",headers:{"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"},body:JSON.stringify({body:JSON.stringify({action:"traveler-status",requestId:access.requestId,accessToken:access.accessToken}),async:false,path:"/",method:"POST",headers:{"content-type":"application/json"}})});
   const ex=await r.json();const result=JSON.parse(ex.responseBody||"{}");if(!r.ok||Number(ex.responseStatusCode||0)>=400)throw new Error(result.error||"Impossibile caricare la richiesta.");
   const q=result.request,a=result.assignments||[];document.getElementById("tripTitle").textContent=q.destinazione?"Il tuo viaggio verso "+q.destinazione:"Il tuo viaggio";
   document.getElementById("travelerSummary").innerHTML=[["Viaggio",q.tipologia_viaggio],["Destinazione",q.destinazione],["Periodo",q.periodo],["Partenza",q.partenza_da],["Viaggiatori",(q.adulti||1)+" adulti"+(q.bambini?" · "+q.bambini+" bambini":"")],["Budget",q.budget]].filter(x=>x[1]).map(x=>'<div><span>'+esc(x[0])+'</span><strong>'+esc(x[1])+'</strong></div>').join("");
