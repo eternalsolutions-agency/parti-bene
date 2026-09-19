@@ -12,7 +12,7 @@
 <script src="effects.js" defer></script>
 </head>
 <body>
-  <div class="topbar">Iscrizione gratuita per agenzie e consulenti di viaggio</div>
+  <div class="topbar">Viaggiatori: trova il professionista più adatto al tuo viaggio · <a href="per-professionisti.html" style="color:inherit">Sei un professionista?</a></div>
   <header>
     <div class="container nav">
       <a class="brand" href="#" aria-label="Parti Bene, homepage">
@@ -26,7 +26,7 @@
       </nav>
       <div class="actions">
         <a class="btn btn-ghost" href="accedi.html">Accedi</a>
-        <a class="btn btn-primary" href="area-professionisti.html">Iscriviti gratis</a>
+        <a class="btn btn-primary" href="#matchWizard">Inizia il Travel Match</a>
       </div>
     </div>
   </header>
@@ -37,11 +37,11 @@
       <div class="container">
         <div class="eyebrow">● PARTI BENE TRAVEL MATCH</div>
         <h1>Raccontaci il viaggio. <span>Troviamo chi fa per te.</span></h1>
-        <p class="hero-copy">Non partire da una gara di preventivi. Rispondi a poche domande e PARTI BENE individua professionisti compatibili con destinazione, stile di viaggio, budget e modo in cui vuoi essere seguito.</p>
+        <p class="hero-copy">Non partire da una gara di preventivi. In circa 60 secondi raccontaci il viaggio che cerchi: PARTI BENE individua fino a 3 professionisti compatibili con le tue esigenze.</p><div class="match-trust-line">✓ Nessun bombardamento di telefonate &nbsp;·&nbsp; ✓ Massimo 3 professionisti &nbsp;·&nbsp; ✓ Sei tu a scegliere come essere ricontattato</div>
 
         <div class="match-wizard" id="matchWizard">
           <div class="match-progress"><div id="matchProgressBar"></div></div>
-          <div class="match-step-label" id="matchStepLabel">Domanda 1 di 9</div>
+          <div class="match-step-label" id="matchStepLabel">Il tuo viaggio</div>
 
           <form id="travelMatchForm">
             <section class="match-step active" data-step="0">
@@ -104,15 +104,16 @@
               <div class="safe-note" id="consultationRule">Tariffa calcolata in base alla richiesta: 20 € per voli Italia/Europa, hotel e servizi semplici; 50 € per voli intercontinentali e viaggi di nozze. Se nessun professionista accetta una richiesta pagata, è previsto il rimborso integrale.</div>
             </section>
             <section class="match-step" data-step="8">
-              <div class="match-question">Ultimo passo: come possiamo ricontattarti?</div>
-              <p>I tuoi dati serviranno per la richiesta Travel Match e per metterti in contatto con professionisti compatibili.</p>
+              <div class="match-question">Ultimo passo: come preferisci essere ricontattato?</div>
+              <p>I tuoi dati saranno condivisi solo con i professionisti che gestiranno la tua richiesta. Scegli tu il canale che preferisci.</p>
+              <div class="match-options single contact-options"><button type="button" data-value="WhatsApp">WhatsApp</button><button type="button" data-value="Telefono">Chiamata</button><button type="button" data-value="Email">Email</button></div><input type="hidden" name="contact_method">
               <div class="match-two"><input class="match-input" name="name" placeholder="Nome e cognome" required><input class="match-input" name="phone" type="tel" placeholder="Telefono" required></div>
               <input class="match-input" name="email" type="email" placeholder="Email" required>
               <label class="match-check"><input type="checkbox" required> Accetto l’informativa privacy.</label>
             </section>
             <div class="match-actions"><button class="btn btn-ghost" id="matchBack" type="button" hidden>← Indietro</button><button class="btn btn-primary" id="matchNext" type="button">Continua →</button></div>
           </form>
-          <div class="match-note">✓ Nessun obbligo d'acquisto · ✓ Non è una gara al prezzo più basso · Circa 2 minuti</div>
+          <div class="match-note">✓ Nessun obbligo d'acquisto · ✓ Non è una gara al prezzo più basso · Circa 60 secondi</div>
         </div>
       </div>
     </section>
@@ -121,8 +122,8 @@
       <div class="container">
         <div class="section-head home-paths-head">
           <div>
-            <div class="kicker">Tre modi per partire</div>
-            <h2>Scegli il percorso più semplice per te</h2>
+            <div class="kicker">Se preferisci esplorare</div>
+            <h2>Oppure cerca direttamente un professionista</h2>
           </div>
           <p class="section-copy">Non tutti cercano il viaggio nello stesso modo. Parti Bene mette al centro la tua esigenza, non un catalogo impersonale.</p>
         </div>
@@ -155,7 +156,7 @@
           <div>
             <div class="kicker">Professionisti in evidenza</div>
             <h2>Confronta competenze e servizi</h2>
-            <p class="section-copy">Questi sono profili dimostrativi. I profili reali saranno inseriti e verificati nella fase successiva.</p>
+            <p class="section-copy">Scopri agenzie e consulenti presenti su PARTI BENE. I badge di verifica vengono mostrati solo quando il relativo requisito è stato controllato.</p>
           </div>
         </div>
         <div class="filters" id="filters">
@@ -220,7 +221,7 @@
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
   <script src="travel-match.js"></script>
 </body>
 </html>
