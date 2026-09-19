@@ -103,7 +103,7 @@ form.addEventListener("submit",async function(e){
    assistenza:String(data.get("assistance")),
    // I campi Travel Match aggiuntivi vengono serializzati nei dettagli finché lo schema Appwrite non viene esteso.
 
-   dettagli:[String(data.get("details")||"").trim(),data.get("intent")?"Intento: "+data.get("intent"):"",data.get("consultation_mode")?"Consulenza: "+data.get("consultation_mode"):"",data.get("consultation_fee")?"Tariffa: €"+data.get("consultation_fee"):""].filter(Boolean).join(" | ")||null,
+   dettagli:[String(data.get("details")||"").trim(),data.get("intent")?"Intento: "+data.get("intent"):"",data.get("consultation_mode")?"Consulenza: "+data.get("consultation_mode"):"",data.get("consultation_fee")?"Tariffa: €"+data.get("consultation_fee"):"",briefValue("contact_method")?"Ricontatto preferito: "+briefValue("contact_method"):""].filter(Boolean).join(" | ")||null,
    nome_cliente:String(data.get("name")).trim(),
    telefono:String(data.get("phone")).trim(),
    email:String(data.get("email")).trim(),
