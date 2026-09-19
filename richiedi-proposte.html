@@ -131,7 +131,8 @@ form.addEventListener("submit",async function(e){
   const result=JSON.parse(execution.responseBody||"{}");
   if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Non è stato possibile inviare la richiesta.");
   if(selectedSlug&&!result.assigned)throw new Error("La richiesta è stata salvata, ma non è stato possibile assegnarla automaticamente al professionista scelto.");
-  form.reset();message.textContent=selectedSlug?"Richiesta confermata e assegnata al professionista scelto. Ora potrà accettarla o rifiutarla dalla sua dashboard.":"Richiesta inviata correttamente. Parti Bene individuerà professionisti compatibili, senza obbligo di acquisto.";
+  const travelerAccess={requestId:result.requestId,email:payload.email};sessionStorage.setItem("partiBeneTravelerRequest",JSON.stringify(travelerAccess));localStorage.setItem("partiBeneTravelerRequest",JSON.stringify(travelerAccess));
+  form.reset();message.innerHTML=(selectedSlug?"Richiesta confermata e assegnata al professionista scelto.":"Richiesta inviata correttamente.")+' <a href="il-mio-viaggio.html" style="font-weight:900">Segui lo stato della richiesta →</a>';
  }catch(error){message.textContent=error.message;message.style.background="#fff1ef";message.style.color="#913428";}
  finally{button.disabled=false;button.textContent="Conferma il mio Travel Match";message.scrollIntoView({behavior:"smooth",block:"center"});}
 });
