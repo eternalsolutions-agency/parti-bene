@@ -18,7 +18,10 @@
 </div></header>
 <main>
 <section class="page-hero"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a> / Professionisti</div><h1>Trova il professionista giusto per il tuo viaggio</h1><p class="hero-copy" id="professionalHeroCopy">Filtra per zona, specializzazione e modalità di consulenza. I badge indicano esclusivamente verifiche effettuate da PARTI BENE.</p>
-<div id="matchIntro" class="notice match-result-intro" hidden></div>
+<div id="matchIntro" class="match-wow" hidden>
+<div><span class="match-wow-kicker">Travel Match completato</span><h2 id="matchWowTitle">Stiamo cercando i profili più compatibili</h2><p id="matchWowCopy">La compatibilità misura quanto il profilo corrisponde alle esigenze che hai indicato.</p></div>
+<div id="matchBriefChips" class="match-brief-chips"></div>
+</div>
 <form id="searchForm" class="search-box">
 <div class="field"><label for="searchTravel">Destinazione o viaggio</label><input id="searchTravel" type="search" placeholder="Es. Giappone, crociera"></div>
 <div class="field"><label for="searchCity">Città o provincia</label><input id="searchCity" placeholder="Es. Roma"></div>
@@ -79,7 +82,8 @@ function render(){
   return (!travel||travelText.includes(travel))&&(!city||cityText.includes(city))&&modeOk;
  }).map(p=>({...p,distance:userPosition&&p.latitudine!=null&&p.longitudine!=null?distanceKm(userPosition.lat,userPosition.lon,p.latitudine,p.longitudine):null}));
  if(matchMode){list=list.map(compatibility).filter(p=>p.matchScore>=0).sort((a,b)=>b.matchScore-a.matchScore).slice(0,3);} else if(userPosition)list.sort((a,b)=>(a.distance??Infinity)-(b.distance??Infinity));
- document.getElementById("resultTitle").classList.remove("skeleton-title");document.getElementById("resultTitle").textContent=matchMode?(list.length?"I professionisti più compatibili":"Nessun match disponibile"):(list.length+" "+(list.length===1?"professionista disponibile":"professionisti disponibili"));
+ document.getElementById("resultTitle").classList.remove("skeleton-title");document.getElementById("resultTitle").textContent=matchMode?(list.length?"Confronta i profili selezionati":"Nessun match disponibile"):(list.length+" "+(list.length===1?"professionista disponibile":"professionisti disponibili"));
+ if(matchMode){const title=document.getElementById("matchWowTitle"),copy=document.getElementById("matchWowCopy");if(list.length){title.textContent=list.length===1?"Abbiamo trovato 1 professionista compatibile":"Abbiamo trovato "+list.length+" professionisti compatibili";copy.textContent="Li abbiamo selezionati confrontando il tuo Brief con i dati dichiarati dai professionisti. Scopri perché ciascun profilo può essere adatto al tuo viaggio.";}else{title.textContent="Non abbiamo ancora trovato un profilo sufficientemente compatibile";copy.textContent="Puoi comunque esplorare i professionisti pubblicati o modificare i criteri del tuo viaggio.";}}
  cards.innerHTML=list.map(p=>{
   const tags=[...(p.specializzazioni||[]),...(p.destinazioni||[])].slice(0,3);
   const meta=[p.comune,p.provincia,p.disponibile_online?"Disponibile online":null].filter(Boolean).join(" · ");
@@ -103,6 +107,6 @@ document.getElementById("locate").addEventListener("click",()=>{
  if(!navigator.geolocation){message.style.display="block";message.textContent="Geolocalizzazione non disponibile.";return;}
  navigator.geolocation.getCurrentPosition(pos=>{userPosition={lat:pos.coords.latitude,lon:pos.coords.longitude};message.style.display="block";message.textContent="Posizione rilevata. I profili con coordinate sono ordinati per distanza.";render();},()=>{message.style.display="block";message.textContent="Permesso non concesso. Puoi cercare per città o provincia.";});
 });
-if(matchMode){document.getElementById("searchForm").style.display="none";document.getElementById("locate").style.display="none";document.getElementById("professionalHeroCopy").textContent="Abbiamo confrontato le tue esigenze con i profili disponibili. Ti mostriamo fino a 3 professionisti compatibili: la percentuale misura la corrispondenza con i criteri che hai indicato, non una classifica di qualità.";const intro=document.getElementById("matchIntro");intro.hidden=false;intro.textContent=[briefValue("destination"),briefValue("trip_type"),briefValue("budget")].filter(Boolean).join(" · ");} load();
+if(matchMode){document.getElementById("searchForm").style.display="none";document.getElementById("locate").style.display="none";document.getElementById("professionalHeroCopy").textContent="Non una lista di preventivi: una selezione di professionisti coerenti con il viaggio che hai descritto.";const intro=document.getElementById("matchIntro");intro.hidden=false;const chips=[["Destinazione",briefValue("destination")],["Viaggio",briefValue("trip_type")],["Budget",briefValue("budget")],["Assistenza",briefValue("assistance")]].filter(x=>x[1]);document.getElementById("matchBriefChips").innerHTML=chips.map(x=>'<span><small>'+escapeHtml(x[0])+'</small>'+escapeHtml(x[1])+'</span>').join("");} load();
 </script>
 </body></html>
