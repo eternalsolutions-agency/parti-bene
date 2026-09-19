@@ -49,18 +49,20 @@ function normalize(v=""){return String(v).toLowerCase().normalize("NFD").replace
 function tokens(v=""){return normalize(v).split(/[^a-z0-9]+/).filter(x=>x.length>2);}
 function prefOf(p){const m=String(p.descrizione||"").match(/\[Preferenza richieste: (free|paid|both)\]/);return m?m[1]:"both";}
 function tripAliases(type=""){const n=normalize(type);if(n.includes("nozze"))return ["honeymoon","nozze","coppia"];if(n.includes("famiglia"))return ["family","famiglie","famiglia"];if(n.includes("crociera"))return ["cruise","crociere","crociera"];if(n.includes("business"))return ["business","bleisure"];if(n.includes("tour"))return ["tour","gruppo","groups"];if(n.includes("mare"))return ["mare","beach"];if(n.includes("luxury"))return ["luxury","lusso"];return ["custom","su misura"]; }
+function budgetKey(value=""){const n=normalize(value);if(n.includes("fino a"))return "under_1500";if(n.includes("1.500")&&n.includes("3.000"))return "1500_3000";if(n.includes("3.000")&&n.includes("5.000"))return "3000_5000";if(n.includes("5.000")&&n.includes("10.000"))return "5000_10000";if(n.includes("oltre"))return "over_10000";return "";}
+function travelerSegments(type="",adults=2,children=0){const out=[];const n=normalize(type);if(Number(children)>0||n.includes("famiglia"))out.push("famiglie");if(n.includes("business"))out.push("business");if(n.includes("tour"))out.push("gruppi");if(n.includes("nozze"))out.push("coppie");if(Number(adults)===1)out.push("single");if(Number(adults)===2&&!out.length)out.push("coppie");return out;}
 function compatibility(p){
- let score=0,reasons=[];
- const dest=briefValue("destination"),type=briefValue("trip_type"),ass=briefValue("assistance"),consult=briefValue("consultation_mode");
+ if(p.accetta_richieste===false)return {...p,matchScore:-1,matchReasons:[]};
+ let earned=0,possible=0,reasons=[];
+ const dest=briefValue("destination"),type=briefValue("trip_type"),ass=briefValue("assistance"),consult=briefValue("consultation_mode"),budget=briefValue("budget");
  const pDest=normalize((p.destinazioni||[]).join(" ")),pSpec=normalize((p.specializzazioni||[]).join(" "));
- const dt=tokens(dest);if(dt.length&&dt.some(t=>pDest.includes(t))){score+=35;reasons.push("specialista della destinazione");}
- const aliases=tripAliases(type);if(aliases.some(a=>pSpec.includes(normalize(a)))){score+=25;reasons.push("esperienza nel tipo di viaggio");}
- if(ass==="Online"||ass==="Telefono"||ass==="WhatsApp"){if(p.disponibile_online){score+=15;reasons.push("disponibile a distanza");}}
- else if(ass==="In sede"){score+=p.comune||p.indirizzo?15:0;if(p.comune||p.indirizzo)reasons.push("assistenza in presenza");}
- else {score+=10;}
- const pref=prefOf(p);if(!consult||pref==="both"||pref===consult){score+=15;reasons.push(consult==="paid"?"accetta consulenze professionali":"modalità di consulenza compatibile");}else return {...p,matchScore:-1,matchReasons:[]};
- if(p.profilo_verificato){score+=10;reasons.push("profilo verificato");}
- return {...p,matchScore:Math.min(score,100),matchReasons:reasons};
+ const dt=tokens(dest);if(dt.length){possible+=30;if(dt.some(t=>pDest.includes(t))){earned+=30;reasons.push("specialista della destinazione");}}
+ const aliases=tripAliases(type);if(type){possible+=20;if(aliases.some(a=>pSpec.includes(normalize(a)))){earned+=20;reasons.push("esperienza nel tipo di viaggio");}}
+ possible+=15;if(ass==="Online"||ass==="Telefono"||ass==="WhatsApp"){if(p.disponibile_online){earned+=15;reasons.push("disponibile a distanza");}}else if(ass==="In sede"){if(p.comune||p.indirizzo){earned+=15;reasons.push("assistenza in presenza");}}else{earned+=15;}
+ const pref=prefOf(p);possible+=15;if(!consult||pref==="both"||pref===consult){earned+=15;reasons.push(consult==="paid"?"accetta consulenze professionali":"modalità di consulenza compatibile");}else return {...p,matchScore:-1,matchReasons:[]};
+ const bk=budgetKey(budget),pBudgets=p.fasce_budget||[];if(bk&&pBudgets.length){possible+=10;if(pBudgets.includes(bk)){earned+=10;reasons.push("gestisce la tua fascia di budget");}}
+ const segments=travelerSegments(type,briefValue("adults"),briefValue("children")),ideal=p.cliente_ideale||[];if(segments.length&&ideal.length){possible+=10;if(segments.some(s=>ideal.includes(s))){earned+=10;reasons.push("profilo adatto al tuo tipo di viaggiatore");}}
+ return {...p,matchScore:possible?Math.round(earned/possible*100):0,matchReasons:reasons};
 }
 const cards=document.getElementById("professionalCards"),empty=document.getElementById("emptyResults"),message=document.getElementById("listMessage");
 function escapeHtml(value=""){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]));}
