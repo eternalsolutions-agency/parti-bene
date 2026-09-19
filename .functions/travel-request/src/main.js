@@ -1,4 +1,5 @@
 import { Client, TablesDB, ID, Query } from "node-appwrite";
+import crypto from "node:crypto";
 
 const DATABASE_ID = "6aa8e1a70039d07d09d6";
 const PROFESSIONALS_TABLE_ID = "6aa8e22900034b468dc2";
@@ -20,6 +21,21 @@ function cleanText(value, max = 500) {
   if (value === null || value === undefined) return null;
   const text = String(value).trim();
   return text ? text.slice(0, max) : null;
+}
+
+function travelerSecret() {
+  const secret = process.env.PARTI_BENE_TRAVELER_SECRET;
+  if (!secret || secret.length < 32) throw new Error("PARTI_BENE_TRAVELER_SECRET non configurato o troppo corto.");
+  return secret;
+}
+
+function travelerToken(requestId, email) {
+  return crypto.createHmac("sha256", travelerSecret()).update(String(requestId) + ":" + String(email).trim().toLowerCase()).digest("base64url");
+}
+
+function safeEqual(a, b) {
+  const x = Buffer.from(String(a || "")); const y = Buffer.from(String(b || ""));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
 }
 
 function publicRequest(request, accepted) {
@@ -156,15 +172,17 @@ export default async ({ req, res, error }) => {
         });
       }
 
-      return res.json({ ok: true, requestId: request.$id, assigned: Boolean(assignment) }, 201);
+      const accessToken = travelerToken(request.$id, payload.email);
+      return res.json({ ok: true, requestId: request.$id, accessToken, assigned: Boolean(assignment) }, 201);
     }
 
     if (action === "traveler-status") {
       const requestId = cleanText(body.requestId, 80);
-      const accessKey = cleanText(body.accessKey, 254)?.toLowerCase();
-      if (!requestId || !accessKey) return res.json({ error: "Dati di accesso alla richiesta mancanti." }, 400);
+      const accessToken = cleanText(body.accessToken, 500);
+      if (!requestId || !accessToken) return res.json({ error: "Dati di accesso alla richiesta mancanti." }, 400);
       const request = await tables.getRow({ databaseId: DATABASE_ID, tableId: TRAVEL_REQUESTS_TABLE_ID, rowId: requestId });
-      if (String(request.email || "").trim().toLowerCase() !== accessKey) return res.json({ error: "Richiesta non trovata." }, 404);
+      const expectedToken = travelerToken(request.$id, request.email || "");
+      if (!safeEqual(accessToken, expectedToken)) return res.json({ error: "Richiesta non trovata." }, 404);
       const allAssignments = await tables.listRows({ databaseId: DATABASE_ID, tableId: ASSIGNMENTS_TABLE_ID, queries: [Query.orderDesc("$createdAt"), Query.limit(100)] });
       const related = (allAssignments.rows || []).filter(row => String(row.richiesta_id || "") === String(requestId));
       const professionalIds = [...new Set(related.map(row => row.professionista_id).filter(Boolean))];
