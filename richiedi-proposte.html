@@ -13,7 +13,7 @@
 <div class="topbar">Travel Match · richieste qualificate</div>
 <header><div class="container nav">
 <a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
-<nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a><a href="per-professionisti.html">Per i professionisti</a></nav>
+<nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a><a href="area-professionisti.html">Per i professionisti</a></nav>
 <div class="actions"><a class="btn btn-ghost" href="accedi.html">Accedi</a><a class="btn btn-primary" href="area-professionisti.html">Iscriviti gratis</a></div>
 </div></header>
 <main>
@@ -131,7 +131,8 @@ form.addEventListener("submit",async function(e){
   const result=JSON.parse(execution.responseBody||"{}");
   if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Non è stato possibile inviare la richiesta.");
   if(selectedSlug&&!result.assigned)throw new Error("La richiesta è stata salvata, ma non è stato possibile assegnarla automaticamente al professionista scelto.");
-  const travelerAccess={requestId:result.requestId,email:payload.email};sessionStorage.setItem("partiBeneTravelerRequest",JSON.stringify(travelerAccess));localStorage.setItem("partiBeneTravelerRequest",JSON.stringify(travelerAccess));
+  if(!result.accessToken)throw new Error("Accesso sicuro alla richiesta non disponibile. Riprova tra poco.");
+  const travelerAccess={requestId:result.requestId,accessToken:result.accessToken};sessionStorage.setItem("partiBeneTravelerRequest",JSON.stringify(travelerAccess));localStorage.setItem("partiBeneTravelerRequest",JSON.stringify(travelerAccess));
   form.reset();message.innerHTML=(selectedSlug?"Richiesta confermata e assegnata al professionista scelto.":"Richiesta inviata correttamente.")+' <a href="il-mio-viaggio.html" style="font-weight:900">Segui lo stato della richiesta →</a>';
  }catch(error){message.textContent=error.message;message.style.background="#fff1ef";message.style.color="#913428";}
  finally{button.disabled=false;button.textContent="Conferma il mio Travel Match";message.scrollIntoView({behavior:"smooth",block:"center"});}
