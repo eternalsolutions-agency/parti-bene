@@ -132,7 +132,15 @@ body[data-dashboard-view="messages"] .dashboard-view[data-dashboard-view="messag
 <div class="form-field full"><label>Specializzazioni</label><input name="specializzazioni" placeholder="Es. viaggi di nozze, crociere, famiglie"><small class="meta">Separa le voci con una virgola.</small></div>
 <div class="form-field full"><label>Destinazioni principali</label><input name="destinazioni" placeholder="Es. Giappone, Maldive, Stati Uniti"><small class="meta">Separa le destinazioni con una virgola.</small></div>
 <label class="consent-line form-field full"><input name="disponibile_online" type="checkbox"><span>Disponibile per consulenze online</span></label>
-<div class="form-field full"><label>Richieste Travel Match</label><select name="request_preference"><option value="both">Gratuite e professionali</option><option value="free">Solo primo contatto gratuito</option><option value="paid">Solo consulenze professionali</option></select><small class="meta">Questa impostazione verrà usata dal matching automatico non appena il campo dedicato sarà attivato in Appwrite.</small></div>
+<div class="form-section form-field full"><h3>Travel Match V2</h3><p>Indica quali viaggiatori e fasce di budget sono più adatti al tuo modo di lavorare.</p></div>
+<div class="form-field full"><label>Cliente ideale</label><div class="check-grid">
+<label class="check-card"><input type="checkbox" name="cliente_ideale" value="coppie"> Coppie</label><label class="check-card"><input type="checkbox" name="cliente_ideale" value="famiglie"> Famiglie</label><label class="check-card"><input type="checkbox" name="cliente_ideale" value="single"> Viaggiatori singoli</label><label class="check-card"><input type="checkbox" name="cliente_ideale" value="gruppi"> Gruppi</label><label class="check-card"><input type="checkbox" name="cliente_ideale" value="business"> Business</label><label class="check-card"><input type="checkbox" name="cliente_ideale" value="senior"> Senior</label>
+</div></div>
+<div class="form-field full"><label>Fasce di budget normalmente gestite</label><div class="check-grid">
+<label class="check-card"><input type="checkbox" name="fasce_budget" value="under_1500"> Fino a €1.500</label><label class="check-card"><input type="checkbox" name="fasce_budget" value="1500_3000"> €1.500–€3.000</label><label class="check-card"><input type="checkbox" name="fasce_budget" value="3000_5000"> €3.000–€5.000</label><label class="check-card"><input type="checkbox" name="fasce_budget" value="5000_10000"> €5.000–€10.000</label><label class="check-card"><input type="checkbox" name="fasce_budget" value="over_10000"> Oltre €10.000</label>
+</div></div>
+<label class="consent-line form-field full"><input name="accetta_richieste" type="checkbox" checked><span><strong>Accetto nuove richieste Travel Match</strong><br><small class="meta">Disattiva questa opzione per mettere temporaneamente in pausa le nuove richieste senza nascondere il profilo.</small></span></label>
+<div class="form-field full"><label>Richieste Travel Match</label><select name="request_preference"><option value="both">Gratuite e professionali</option><option value="free">Solo primo contatto gratuito</option><option value="paid">Solo consulenze professionali</option></select></div>
 <button id="saveProfileButton" class="btn btn-primary form-field full" type="submit">Salva le modifiche</button>
 </form>
 <div id="profileMessage" class="notice" role="status" aria-live="polite" hidden></div>
@@ -256,7 +264,12 @@ async function loadOwnedProfile(user, application) {
   profileForm.elements.descrizione.value=currentProfile.descrizione||"";
   profileForm.elements.specializzazioni.value=(currentProfile.specializzazioni||[]).join(", ");
   profileForm.elements.destinazioni.value=(currentProfile.destinazioni||[]).join(", ");
-  profileForm.elements.disponibile_online.checked=Boolean(currentProfile.disponibile_online); const prefMatch=String(currentProfile.descrizione||"").match(/\[Preferenza richieste: (free|paid|both)\]/); profileForm.elements.request_preference.value=prefMatch?prefMatch[1]:"both";
+  profileForm.elements.disponibile_online.checked=Boolean(currentProfile.disponibile_online);
+  const prefMatch=String(currentProfile.descrizione||"").match(/\[Preferenza richieste: (free|paid|both)\]/); profileForm.elements.request_preference.value=prefMatch?prefMatch[1]:"both";
+  const ideal=new Set(currentProfile.cliente_ideale||[]),budgets=new Set(currentProfile.fasce_budget||[]);
+  profileForm.querySelectorAll('input[name="cliente_ideale"]').forEach(input=>input.checked=ideal.has(input.value));
+  profileForm.querySelectorAll('input[name="fasce_budget"]').forEach(input=>input.checked=budgets.has(input.value));
+  profileForm.elements.accetta_richieste.checked=currentProfile.accetta_richieste!==false;
   document.getElementById("publicProfileLink").href="profilo.html?slug="+encodeURIComponent(currentProfile.slug);
   offersManager.hidden=false;
   offersManager.classList.add("view-ready");
@@ -484,7 +497,11 @@ profileForm.addEventListener("submit",async event=>{
       descrizione:String(data.get("descrizione")).trim(),
       specializzazioni:commaList(data.get("specializzazioni")),
       destinazioni:commaList(data.get("destinazioni")),
-      disponibile_online:Boolean(data.get("disponibile_online"))
+      disponibile_online:Boolean(data.get("disponibile_online")),
+      cliente_ideale:data.getAll("cliente_ideale"),
+      fasce_budget:data.getAll("fasce_budget"),
+      accetta_richieste:Boolean(data.get("accetta_richieste")),
+      request_preference:String(data.get("request_preference")||"both")
     };
     const saved=await travelRequestFunction("update-profile",{profile:update});
     currentProfile=saved.profile||{...currentProfile,...update};
