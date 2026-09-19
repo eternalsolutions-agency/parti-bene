@@ -10,14 +10,14 @@
 <script src="effects.js" defer></script>
 </head>
 <body>
-<div class="topbar">Iscrizione gratuita per agenzie e consulenti di viaggio</div>
+<div class="topbar">Trova professionisti in base alle tue esigenze · <a href="per-professionisti.html" style="color:inherit">Sei un professionista?</a></div>
 <header><div class="container nav">
 <a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
 <nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a><a href="sei-un-agenzia.html">Sei un’agenzia?</a><a href="sei-un-consulente.html">Sei un consulente?</a></nav>
 <div class="actions"><a class="btn btn-ghost" href="accedi.html">Accedi</a><a class="btn btn-primary" href="area-professionisti.html">Iscriviti gratis</a></div>
 </div></header>
 <main>
-<section class="page-hero"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a> / Professionisti</div><h1>Trova il professionista giusto per il tuo viaggio</h1><p class="hero-copy" id="professionalHeroCopy">Filtra per zona, specializzazione e modalità di consulenza.</p>
+<section class="page-hero"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a> / Professionisti</div><h1>Trova il professionista giusto per il tuo viaggio</h1><p class="hero-copy" id="professionalHeroCopy">Filtra per zona, specializzazione e modalità di consulenza. I badge indicano esclusivamente verifiche effettuate da PARTI BENE.</p>
 <div id="matchIntro" class="notice match-result-intro" hidden></div>
 <form id="searchForm" class="search-box">
 <div class="field"><label for="searchTravel">Destinazione o viaggio</label><input id="searchTravel" type="search" placeholder="Es. Giappone, crociera"></div>
@@ -81,7 +81,9 @@ function render(){
  cards.innerHTML=list.map(p=>{
   const tags=[...(p.specializzazioni||[]),...(p.destinazioni||[])].slice(0,3);
   const meta=[p.comune,p.provincia,p.disponibile_online?"Disponibile online":null].filter(Boolean).join(" · ");
-  return '<article class="card">'+(matchMode?'<div class="match-score"><strong>'+p.matchScore+'%</strong><span>compatibilità</span></div>':'')+'<div class="card-top" style="background-image:url('+getDestinationImage(p.destinazioni,p.nome+" "+(p.descrizione||""))+')"><div class="avatar">'+initials(p.nome)+'</div><div class="verified">'+(p.profilo_verificato?"✓ Verificato":"Profilo registrato")+'</div></div><div class="card-body"><h3>'+escapeHtml(p.nome)+'</h3><div class="meta">'+escapeHtml(meta||"Consulenza di viaggio")+'</div><div class="tags">'+tags.map(t=>'<span class="tag">'+escapeHtml(t)+'</span>').join("")+'</div>'+(p.distance!==null?'<div class="distance">'+p.distance.toFixed(1)+' km dalla tua posizione</div>':"")+(matchMode&&p.matchReasons.length?'<div class="match-reasons">'+p.matchReasons.slice(0,3).map(r=>'<span>✓ '+escapeHtml(r)+'</span>').join("")+'</div>':'')+'<div class="card-actions"><a class="btn btn-ghost" href="profilo.html?slug='+encodeURIComponent(p.slug)+'">Vedi profilo</a><a class="btn btn-primary" href="richiedi-proposte.html?travelmatch=1&professionista='+encodeURIComponent(p.slug)+'">Richiedi una consulenza</a></div></div></article>';
+  const verification=p.profilo_verificato?'<div class="trust-badges"><span class="trust-badge trust-badge-ok">✓ Profilo verificato da PARTI BENE</span></div>':'<div class="trust-badges"><span class="trust-badge">Profilo registrato</span></div>';
+  const why=matchMode&&p.matchReasons.length?'<div class="why-match"><strong>Perché è compatibile con il tuo viaggio</strong>'+p.matchReasons.slice(0,4).map(r=>'<span>✓ '+escapeHtml(r)+'</span>').join("")+'</div>':'';
+  return '<article class="card professional-card">'+(matchMode?'<div class="match-score"><strong>'+p.matchScore+'%</strong><span>compatibilità</span></div>':'')+'<div class="card-top" style="background-image:url('+getDestinationImage(p.destinazioni,p.nome+" "+(p.descrizione||""))+')"><div class="avatar">'+initials(p.nome)+'</div></div><div class="card-body">'+verification+'<h3>'+escapeHtml(p.nome)+'</h3><div class="meta">'+escapeHtml(meta||"Consulenza di viaggio")+'</div><div class="tags">'+tags.map(t=>'<span class="tag">'+escapeHtml(t)+'</span>').join("")+'</div>'+(p.distance!==null?'<div class="distance">'+p.distance.toFixed(1)+' km dalla tua posizione</div>':"")+why+'<div class="card-actions"><a class="btn btn-ghost" href="profilo.html?slug='+encodeURIComponent(p.slug)+'">Scopri il profilo</a><a class="btn btn-primary" href="richiedi-proposte.html?travelmatch=1&professionista='+encodeURIComponent(p.slug)+'">Richiedi consulenza</a></div></div></article>';
  }).join("");
  empty.style.display=list.length?"none":"block";
 }
@@ -99,6 +101,6 @@ document.getElementById("locate").addEventListener("click",()=>{
  if(!navigator.geolocation){message.style.display="block";message.textContent="Geolocalizzazione non disponibile.";return;}
  navigator.geolocation.getCurrentPosition(pos=>{userPosition={lat:pos.coords.latitude,lon:pos.coords.longitude};message.style.display="block";message.textContent="Posizione rilevata. I profili con coordinate sono ordinati per distanza.";render();},()=>{message.style.display="block";message.textContent="Permesso non concesso. Puoi cercare per città o provincia.";});
 });
-if(matchMode){document.getElementById("searchForm").style.display="none";document.getElementById("locate").style.display="none";document.getElementById("professionalHeroCopy").textContent="In base alle risposte del tuo Travel Match, ecco fino a tre professionisti compatibili. La percentuale indica la corrispondenza con i criteri dichiarati, non una classifica di qualità.";const intro=document.getElementById("matchIntro");intro.hidden=false;intro.textContent=[briefValue("destination"),briefValue("trip_type"),briefValue("budget")].filter(Boolean).join(" · ");} load();
+if(matchMode){document.getElementById("searchForm").style.display="none";document.getElementById("locate").style.display="none";document.getElementById("professionalHeroCopy").textContent="Abbiamo confrontato le tue esigenze con i profili disponibili. Ti mostriamo fino a 3 professionisti compatibili: la percentuale misura la corrispondenza con i criteri che hai indicato, non una classifica di qualità.";const intro=document.getElementById("matchIntro");intro.hidden=false;intro.textContent=[briefValue("destination"),briefValue("trip_type"),briefValue("budget")].filter(Boolean).join(" · ");} load();
 </script>
 </body></html>
