@@ -326,7 +326,7 @@ function renderRequestCounters(){
 }
 function renderClientRequests(){
  renderRequestCounters();
- const visible=assignedRequests.filter(({assignment})=>requestFilter==="all"||(requestFilter==="answered"?assignment.stato==="risposta":assignment.stato!=="risposta"));
+ const visible=assignedRequests.filter(({assignment})=>requestFilter==="all"||(requestFilter==="answered"?assignment.stato==="risposta":["nuova","accettata"].includes(assignment.stato)));
  clientRequestsList.innerHTML=visible.length?visible.map(({assignment,request})=>{
   const accepted=["accettata","risposta"].includes(assignment.stato),answered=assignment.stato==="risposta";
   const contact=accepted?'<div class="request-contact"><div><strong>'+escapeOffer(request.nome_cliente||"")+'</strong><br>'+escapeOffer(request.email||"")+'</div><div><strong>Telefono</strong><br>'+escapeOffer(request.telefono||"")+'</div></div>':'<div class="notice">I contatti del viaggiatore saranno visibili dopo aver accettato la richiesta.</div>';
@@ -362,7 +362,7 @@ clientRequestsList.addEventListener("submit",async event=>{
   const result=await travelRequestFunction("update",{assignmentId:item.assignment.$id,status:"risposta",message:String(data.get("message")||"").trim(),price:String(data.get("price")||"")});
   item.assignment=result.assignment;if(result.request)item.request=result.request;renderClientRequests();
  }catch(error){alert(error.message||readableError(error));}
- finally{button.disabled=false;button.textContent="Salva la risposta";}
+ finally{button.disabled=false;button.textContent="Invia risposta";}
 });
 
 
