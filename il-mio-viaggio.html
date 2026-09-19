@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#062e59"><link rel="icon" type="image/png" href="logo-parti-bene.png"><link rel="stylesheet" href="styles.css"><title>Il mio viaggio | Parti Bene</title></head>
+<body><div class="topbar">Il tuo viaggio, passo dopo passo</div><header><div class="container nav"><a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png" alt="Parti Bene"></a><nav><a href="professionisti.html">Professionisti</a><a href="come-funziona.html">Come funziona</a></nav><div class="actions"><a class="btn btn-ghost" href="index.html">Home</a></div></div></header>
+<main><section class="page-hero traveler-hero"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a> / Il mio viaggio</div><div class="kicker">AREA VIAGGIATORE</div><h1 id="tripTitle">Segui la tua richiesta</h1><p class="hero-copy">Qui puoi vedere cosa sta succedendo dopo il Travel Match, senza chiederti se la tua richiesta sia finita nel vuoto.</p></div></section>
+<section><div class="container traveler-wrap"><div id="travelerMessage" class="notice">Caricamento della richiesta…</div><div id="travelerContent" hidden>
+<div class="traveler-summary" id="travelerSummary"></div>
+<div class="traveler-timeline" id="travelerTimeline"></div>
+<div class="traveler-responses" id="travelerResponses"></div>
+</div><div id="travelerEmpty" class="empty" hidden><h3>Non troviamo una richiesta da mostrare</h3><p>Apri questa pagina dopo aver inviato un Travel Match da questo dispositivo.</p><a class="btn btn-primary" href="index.html#matchWizard">Inizia un Travel Match</a></div></div></section></main>
+<footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>I dati della richiesta sono accessibili solo tramite le informazioni salvate sul tuo dispositivo.</span></div></div></footer>
+<script type="module">
+import { APPWRITE_CONFIG } from "./appwrite-config.js";
+const msg=document.getElementById("travelerMessage"),content=document.getElementById("travelerContent"),empty=document.getElementById("travelerEmpty");
+function esc(v=""){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+async function run(){
+ let access={};try{access=JSON.parse(sessionStorage.getItem("partiBeneTravelerRequest")||localStorage.getItem("partiBeneTravelerRequest")||"{}");}catch(_){}
+ if(!access.requestId||!access.email){msg.hidden=true;empty.hidden=false;return;}
+ try{
+  const r=await fetch(APPWRITE_CONFIG.endpoint+"/functions/"+APPWRITE_CONFIG.travelRequestFunctionId+"/executions",{method:"POST",headers:{"Content-Type":"application/json","X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"},body:JSON.stringify({body:JSON.stringify({action:"traveler-status",requestId:access.requestId,accessKey:access.email}),async:false,path:"/",method:"POST",headers:{"content-type":"application/json"}})});
+  const ex=await r.json();const result=JSON.parse(ex.responseBody||"{}");if(!r.ok||Number(ex.responseStatusCode||0)>=400)throw new Error(result.error||"Impossibile caricare la richiesta.");
+  const q=result.request,a=result.assignments||[];document.getElementById("tripTitle").textContent=q.destinazione?"Il tuo viaggio verso "+q.destinazione:"Il tuo viaggio";
+  document.getElementById("travelerSummary").innerHTML=[["Viaggio",q.tipologia_viaggio],["Destinazione",q.destinazione],["Periodo",q.periodo],["Partenza",q.partenza_da],["Viaggiatori",(q.adulti||1)+" adulti"+(q.bambini?" · "+q.bambini+" bambini":"")],["Budget",q.budget]].filter(x=>x[1]).map(x=>'<div><span>'+esc(x[0])+'</span><strong>'+esc(x[1])+'</strong></div>').join("");
+  const accepted=a.some(x=>["accettata","risposta"].includes(x.stato)),answered=a.some(x=>x.stato==="risposta"),assigned=a.length>0;
+  const steps=[["Travel Match completato",true],["Richiesta inviata",true],["Professionista individuato",assigned],["Professionista disponibile",accepted],["Risposta ricevuta",answered]];
+  document.getElementById("travelerTimeline").innerHTML='<h2>Stato della richiesta</h2>'+steps.map((s,i)=>'<div class="timeline-step '+(s[1]?"done":"pending")+'"><b>'+(s[1]?"✓":i+1)+'</b><span>'+s[0]+'</span></div>').join("");
+  const replies=a.filter(x=>["accettata","risposta"].includes(x.stato));document.getElementById("travelerResponses").innerHTML=replies.length?'<h2>I professionisti che ti stanno seguendo</h2>'+replies.map(x=>'<article class="traveler-response"><div><strong>'+esc(x.professionista)+'</strong><span>'+(x.stato==="risposta"?"Ha inviato una risposta":"Ha accettato la tua richiesta")+'</span></div>'+(x.messaggio_professionista?'<p>'+esc(x.messaggio_professionista)+'</p>':'')+(x.proposta_economica!=null?'<div class="response-price">Proposta: € '+esc(x.proposta_economica)+'</div>':'')+'</article>').join(""):'<div class="safe-note">La richiesta è registrata. Quando un professionista la accetterà, vedrai qui l’aggiornamento.</div>';
+  msg.hidden=true;content.hidden=false;
+ }catch(e){msg.textContent=e.message;}
+}run();
+</script></body></html>
