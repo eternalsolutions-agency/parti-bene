@@ -359,3 +359,29 @@ footer{border-top:5px solid var(--orange)}
   .home-hero-video{display:none}
   .home-hero-video-wrap{min-height:180px}
 }
+
+
+/* Travel Match compatto homepage */
+.home-video-hero .match-wizard{max-width:760px;padding:20px 22px 18px;margin-top:14px;border-radius:20px}
+.home-video-hero .match-progress{height:5px}
+.home-video-hero .match-step-label{margin:9px 0 12px;font-size:11px}
+.home-video-hero .match-question{font-size:clamp(21px,2.5vw,28px);margin-bottom:4px}
+.home-video-hero .match-step p{margin-bottom:11px;font-size:13px;line-height:1.45}
+.home-video-hero .match-input{padding:11px 13px;margin:4px 0}
+.home-video-hero .match-check{margin-top:8px;font-size:13px}
+.home-video-hero .match-options{gap:8px;margin-top:11px}
+.home-video-hero .match-options button{padding:11px 9px}
+.home-video-hero .match-actions{margin-top:14px}
+.home-video-hero .match-actions .btn{padding:10px 16px}
+.home-video-hero .match-note{display:none}
+.home-video-hero .match-photo-options button{min-height:108px}
+.home-video-hero .match-photo-options button img{height:70px}
+.home-video-hero .intent-photo-options button{min-height:124px}
+.home-video-hero .intent-photo-options button img{height:82px}
+.home-video-hero .consultation-options button{min-height:120px}
+.home-video-hero .consult-price{font-size:20px}
+@media(max-width:700px){
+  .home-video-hero .match-wizard{padding:17px 14px 15px}
+  .home-video-hero .match-question{font-size:22px}
+  .home-video-hero .match-photo-options button img{height:68px}
+}
