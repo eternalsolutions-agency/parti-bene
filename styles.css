@@ -403,3 +403,8 @@ footer{border-top:5px solid var(--orange)}
 .profile-availability-note{margin-top:18px;padding:11px 13px;border-radius:12px;background:#edf9f5;color:#176b5c;font-size:12px;font-weight:750;line-height:1.45}.profile-availability-note.paused{background:#f5f5f5;color:var(--muted)}.btn.is-disabled{opacity:.55;pointer-events:none;filter:grayscale(.2)}
 @media(max-width:800px){.match-wow{grid-template-columns:1fr}.match-brief-chips{justify-content:flex-start;max-width:none}}
 @media(max-width:620px){.match-wow{padding:20px 17px}.profile-fit-grid{grid-template-columns:1fr}}
+
+
+/* Vetrina professionista */
+.vetrina-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0 12px}.vetrina-summary>div{padding:14px 15px;border:1px solid var(--line);border-radius:15px;background:var(--soft)}.vetrina-summary strong{display:block;font-size:25px;color:var(--navy);line-height:1}.vetrina-summary span{display:block;margin-top:5px;font-size:11px;font-weight:800;color:var(--muted)}.vetrina-tip{margin:0 0 22px;padding:13px 15px;border-radius:14px;background:#effaf7;border:1px solid #d4ebe5;color:#315e59;font-size:12px;line-height:1.55}.dashboard-section-head #newOfferButton:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:620px){.vetrina-summary{grid-template-columns:1fr 1fr}.vetrina-summary>div:last-child{grid-column:1/-1}}
