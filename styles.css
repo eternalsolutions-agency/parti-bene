@@ -2,8 +2,8 @@
     :root {
       --navy:#062e59;
       --navy-2:#0b4677;
-      --teal:#18bfa5;
-      --teal-dark:#0b9682;
+      --teal:#02d7bb;
+      --teal-dark:#00aF99;
       --ink:#17324b;
       --muted:#607386;
       --line:#dce7ec;
@@ -210,8 +210,8 @@ nav a::after{content:"";position:absolute;left:0;right:100%;bottom:-9px;height:3
 nav a:hover{color:var(--navy)}
 nav a:hover::after{right:0}
 .btn{position:relative;overflow:hidden}
-.btn-primary{background:linear-gradient(135deg,var(--teal),#37ccb3);box-shadow:0 10px 24px rgba(24,191,165,.24),inset 0 -2px 0 rgba(0,0,0,.06)}
-.btn-primary:hover{box-shadow:0 13px 30px rgba(24,191,165,.3)}
+.btn-primary{background:linear-gradient(135deg,var(--teal),#20e2c8);box-shadow:0 10px 24px rgba(2,215,187,.24),inset 0 -2px 0 rgba(0,0,0,.06)}
+.btn-primary:hover{box-shadow:0 13px 30px rgba(2,215,187,.30)}
 .btn-dark{background:linear-gradient(135deg,var(--navy),#0a4779)}
 .btn-ghost:hover{border-color:#ffc39e;background:var(--orange-soft);color:var(--orange-dark)}
 .page-hero{background:
