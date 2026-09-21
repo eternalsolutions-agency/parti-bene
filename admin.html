@@ -212,11 +212,22 @@ document.getElementById("logoutButton").addEventListener("click",async()=>{await
 
 try{
  const user=await account.get();
- if(!(user.labels||[]).includes("admin"))throw new Error("Il tuo account non dispone del ruolo amministratore.");
- accessMessage.classList.remove("loading");accessMessage.hidden=true;app.hidden=false;await loadRequests();
+ if(!(user.labels||[]).includes("admin")){
+  accessMessage.classList.remove("loading");
+  accessMessage.textContent="Il tuo account non dispone del ruolo amministratore.";
+ }else{
+  accessMessage.classList.remove("loading");accessMessage.hidden=true;app.hidden=false;
+  try{await loadRequests();}
+  catch(error){
+   app.hidden=true;accessMessage.hidden=false;
+   accessMessage.textContent="Accesso amministratore confermato, ma non riesco a leggere i dati del pannello: "+readableError(error);
+  }
+ }
 }catch(error){
- accessMessage.classList.remove("loading");accessMessage.textContent=readableError(error);
- if(error.code===401)setTimeout(()=>location.replace("accedi.html?redirect=admin.html"),1000);
+ accessMessage.classList.remove("loading");
+ if(error.code===401){
+  accessMessage.innerHTML='Sessione non attiva. <a class="text-link" href="accedi.html?redirect=admin.html">Accedi come amministratore →</a>';
+ }else accessMessage.textContent=readableError(error);
 }
 </script>
 </body></html>
