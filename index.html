@@ -50,7 +50,7 @@
           </div>
         </div>
 
-        <div class="match-wizard" id="matchWizard">
+        <div class="match-wizard match-wizard-collapsed" id="matchWizard">
           <div class="match-progress"><div id="matchProgressBar"></div></div>
           <div class="match-step-label" id="matchStepLabel">Il tuo viaggio</div>
 
@@ -234,5 +234,16 @@
 
   <script type="module" src="app.js"></script>
   <script src="travel-match.js"></script>
+  <script>
+    document.querySelectorAll('a[href="#matchWizard"]').forEach(function(link){
+      link.addEventListener("click",function(event){
+        event.preventDefault();
+        var wizard=document.getElementById("matchWizard");
+        if(!wizard)return;
+        wizard.classList.remove("match-wizard-collapsed");
+        requestAnimationFrame(function(){wizard.scrollIntoView({behavior:"smooth",block:"center"});});
+      });
+    });
+  </script>
 </body>
 </html>
