@@ -27,17 +27,17 @@
 </div>
 <div class="panel claim-form"><div class="kicker">Richiesta di rivendicazione</div><h2>Inserisci le informazioni</h2><p class="section-copy">I campi contrassegnati sono necessari per verificare la richiesta.</p>
 <form id="claimForm" class="form-grid">
-<div class="form-field full"><label>Nome dell’agenzia o del professionista *</label><input name="business" required placeholder="Es. Orizzonte Viaggi Roma"></div>
+<div class="form-field full"><label>Profilo da rivendicare *</label><input name="business" required readonly placeholder="Seleziona il profilo dalla pagina del professionista"><small class="meta">La richiesta sarà collegata automaticamente alla scheda pubblica selezionata.</small></div>
 <div class="form-field"><label>Nome e cognome *</label><input name="name" required autocomplete="name"></div>
 <div class="form-field"><label>Ruolo nell’attività *</label><select name="role" required><option value="">Seleziona</option><option>Titolare</option><option>Legale rappresentante</option><option>Dipendente autorizzato</option><option>Consulente titolare del profilo</option></select></div>
 <div class="form-field"><label>Email professionale *</label><input name="email" type="email" required placeholder="nome@agenzia.it"></div>
 <div class="form-field"><label>Telefono *</label><input name="phone" type="tel" required autocomplete="tel"></div>
 <div class="form-field full"><label>Sito web o pagina professionale</label><input name="website" type="url" placeholder="https://"></div>
 <div class="form-field full"><label>Come possiamo verificare il tuo ruolo? *</label><textarea name="verification" required rows="4" placeholder="Indica sito ufficiale, email aziendale o altre informazioni utili. Non inserire documenti sensibili in questa fase."></textarea></div>
-<label class="consent-line form-field full"><input type="checkbox" required><span>Dichiaro di essere autorizzato a richiedere la gestione di questa attività e di aver letto l’informativa privacy.</span></label>
+<label class="consent-line form-field full"><input name="consent" type="checkbox" required><span>Dichiaro di essere autorizzato a richiedere la gestione di questa attività e di aver letto l’informativa privacy.</span></label>
 <button class="btn btn-primary form-field full" type="submit">Invia la richiesta</button>
 </form>
-<div id="claimMessage" class="notice form-message">Il modulo è pronto, ma non salva ancora i dati. Sarà attivato quando collegheremo Supabase.</div>
+<div id="claimMessage" class="notice form-message" role="status" aria-live="polite"></div>
 </div>
 <div class="panel" style="margin-top:18px"><h3>Il profilo contiene dati errati o vuoi richiederne la rimozione?</h3><p class="section-copy">Puoi usare la pagina contatti specificando il nome dell’attività e il tipo di intervento richiesto.</p><a class="btn btn-ghost" href="contatti.html" style="margin-top:14px">Richiedi correzione o rimozione</a></div>
 </div></section>
@@ -48,5 +48,32 @@
 <div><h4>Professionisti</h4><a href="sei-un-agenzia.html">Iscrivi la tua agenzia</a><a href="sei-un-consulente.html">Iscriviti come consulente</a><a href="rivendica-profilo.html">Rivendica un profilo</a><a href="area-professionisti.html">Piano Premium</a></div>
 <div><h4>Informazioni</h4><a href="chi-siamo.html">Chi siamo</a><a href="contatti.html">Contatti</a><a href="privacy.html">Privacy</a></div>
 </div><div class="legal"><span>© 2026 Parti Bene.</span><span>Profilo e dati soggetti a verifica</span></div></div></footer>
-<script>document.getElementById("claimForm").addEventListener("submit",function(e){e.preventDefault();document.getElementById("claimMessage").classList.add("is-visible");document.getElementById("claimMessage").scrollIntoView({behavior:"smooth",block:"center"});});</script>
+<script type="module">
+import { APPWRITE_CONFIG, functions } from "./appwrite-config.js";
+const form=document.getElementById("claimForm"),message=document.getElementById("claimMessage");
+const params=new URLSearchParams(location.search),slug=params.get("slug"),profileId=params.get("id");
+let selectedProfile=null;
+function show(text,error=false){message.textContent=text;message.classList.add("is-visible");message.style.background=error?"#fff1ef":"";message.style.color=error?"#913428":"";message.scrollIntoView({behavior:"smooth",block:"center"});}
+async function run(action,payload={}){
+ const execution=await functions.createExecution({functionId:APPWRITE_CONFIG.travelRequestFunctionId,body:JSON.stringify({action,...payload}),async:false,path:"/",method:"POST",headers:{"content-type":"application/json"}});
+ const result=JSON.parse(execution.responseBody||"{}");if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Operazione non riuscita.");return result;
+}
+try{
+ if(!slug&&!profileId)throw new Error("Apri questa pagina dalla scheda del professionista che vuoi rivendicare.");
+ const result=await run("public-professionals");
+ selectedProfile=(result.items||[]).find(p=>(profileId&&p.$id===profileId)||(slug&&p.slug===slug));
+ if(!selectedProfile)throw new Error("Il profilo da rivendicare non è disponibile.");
+ if(selectedProfile.profilo_rivendicato)throw new Error("Questo profilo risulta già gestito dal professionista.");
+ form.elements.business.value=selectedProfile.nome||"";
+}catch(error){show(error.message,true);form.querySelector('button[type="submit"]').disabled=true;}
+form.addEventListener("submit",async e=>{
+ e.preventDefault();if(!selectedProfile)return;
+ const button=form.querySelector('button[type="submit"]'),data=new FormData(form);button.disabled=true;button.textContent="Invio in corso…";
+ try{
+  const claim={professionista_id:selectedProfile.$id,professionista_slug:selectedProfile.slug,nome_richiedente:String(data.get("name")||"").trim(),ruolo:String(data.get("role")||"").trim(),email:String(data.get("email")||"").trim(),telefono:String(data.get("phone")||"").trim(),sito_web:String(data.get("website")||"").trim(),verifica:String(data.get("verification")||"").trim()};
+  await run("create-profile-claim",{claim});
+  form.reset();form.elements.business.value=selectedProfile.nome;show("Richiesta inviata. Verificheremo il collegamento con l’attività prima di affidarti la gestione del profilo.");
+ }catch(error){show(error.message,true);}finally{button.disabled=false;button.textContent="Invia la richiesta";}
+});
+</script>
 </body></html>
