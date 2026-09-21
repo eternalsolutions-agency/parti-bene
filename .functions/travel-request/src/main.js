@@ -230,6 +230,7 @@ export default async ({ req, res, error }) => {
     }
 
     if (action === "create-profile-claim") {
+      if (!userId) return res.json({ error: "Accedi o crea un account PARTI BENE prima di rivendicare il profilo.", code: "CLAIM_AUTH_REQUIRED" }, 401);
       const source = body.claim || {};
       const professionalId = cleanText(source.professionista_id, 80);
       const professionalSlug = cleanText(source.professionista_slug, 150);
