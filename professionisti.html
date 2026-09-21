@@ -55,7 +55,7 @@ function tripAliases(type=""){const n=normalize(type);if(n.includes("nozze"))ret
 function budgetKey(value=""){const n=normalize(value);if(n.includes("fino a"))return "under_1500";if(n.includes("1.500")&&n.includes("3.000"))return "1500_3000";if(n.includes("3.000")&&n.includes("5.000"))return "3000_5000";if(n.includes("5.000")&&n.includes("10.000"))return "5000_10000";if(n.includes("oltre"))return "over_10000";return "";}
 function travelerSegments(type="",adults=2,children=0){const out=[];const n=normalize(type);if(Number(children)>0||n.includes("famiglia"))out.push("famiglie");if(n.includes("business"))out.push("business");if(n.includes("tour"))out.push("gruppi");if(n.includes("nozze"))out.push("coppie");if(Number(adults)===1)out.push("single");if(Number(adults)===2&&!out.length)out.push("coppie");return out;}
 function compatibility(p){
- if(p.accetta_richieste===false)return {...p,matchScore:-1,matchReasons:[]};
+ if(p.profilo_rivendicato!==true||p.accetta_richieste===false)return {...p,matchScore:-1,matchReasons:[]};
  let earned=0,possible=0,reasons=[];
  const dest=briefValue("destination"),type=briefValue("trip_type"),ass=briefValue("assistance"),consult=briefValue("consultation_mode"),budget=briefValue("budget");
  const pDest=normalize((p.destinazioni||[]).join(" ")),pSpec=normalize((p.specializzazioni||[]).join(" "));
