@@ -428,3 +428,6 @@ footer{border-top:5px solid var(--orange)}
 
 /* Keep the Travel Match questionnaire hidden until the primary CTA is used */
 .match-wizard.match-wizard-collapsed{display:none}
+
+.travel-match-button .travel-match-spark{overflow:hidden;background:#fff!important;padding:3px}
+.travel-match-button .travel-match-spark img{width:100%;height:100%;display:block;object-fit:contain;border-radius:8px}
