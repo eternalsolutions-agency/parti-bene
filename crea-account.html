@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Crea gratuitamente il tuo account Parti Bene per rivendicare e gestire il profilo professionale.">
+<meta name="theme-color" content="#062e59">
+<link rel="icon" type="image/png" href="logo-parti-bene.png">
+<link rel="stylesheet" href="styles.css">
+<title>Crea account | Parti Bene</title>
+<script src="effects.js" defer></script>
+</head>
+<body>
+<div class="topbar">Account gratuito per agenzie e consulenti di viaggio</div>
+<header><div class="container nav">
+<a class="brand" href="index.html"><img class="brand-logo" src="logo-parti-bene.png?v=20260914-3" alt="Parti Bene"></a>
+<nav aria-label="Navigazione principale"><a href="professionisti.html">Trova professionisti</a><a href="offerte.html">Offerte</a><a href="come-funziona.html">Come funziona</a><a href="per-professionisti.html">Per i professionisti</a></nav>
+<div class="actions"><a class="btn btn-ghost" id="loginLink" href="accedi.html">Hai già un account? Accedi</a></div>
+</div></header>
+<main>
+<section class="page-hero"><div class="container" style="max-width:720px">
+<div class="breadcrumbs"><a href="index.html">Home</a> / Crea account</div>
+<div class="kicker">PARTI BENE PROFESSIONISTI</div><h1>Crea il tuo account gratuito</h1>
+<p class="hero-copy">Ti servirà per rivendicare la scheda della tua attività e, dopo la verifica, gestirla direttamente.</p>
+</div></section>
+<section><div class="container" style="max-width:560px">
+<form id="signupForm" class="panel form-grid">
+<div class="notice form-field full"><strong>Stai rivendicando un profilo già presente?</strong><br>Dopo la registrazione tornerai automaticamente alla scheda che stavi rivendicando.</div>
+<div class="form-field full"><label>Nome e cognome *</label><input name="name" required autocomplete="name"></div>
+<div class="form-field full"><label>Email *</label><input name="email" type="email" required autocomplete="email" placeholder="nome@agenzia.it"></div>
+<div class="form-field"><label>Password *</label><input name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="Almeno 8 caratteri"></div>
+<div class="form-field"><label>Conferma password *</label><input name="confirmation" type="password" minlength="8" required autocomplete="new-password"></div>
+<label class="consent-line form-field full"><input name="privacy" type="checkbox" required><span>Ho letto l’informativa privacy e accetto il trattamento dei dati necessario alla creazione dell’account.</span></label>
+<button id="signupButton" class="btn btn-primary form-field full" type="submit">Crea account gratuito</button>
+<div id="signupMessage" class="notice form-field full" role="status" aria-live="polite" hidden></div>
+<p class="form-field full" style="text-align:center;color:var(--muted);margin:4px 0 0">Hai già un account? <a class="text-link" id="bottomLoginLink" href="accedi.html">Accedi</a></p>
+</form>
+</div></section>
+</main>
+<footer><div class="container"><div class="legal"><span>© 2026 Parti Bene.</span><span>Account professionale gratuito</span></div></div></footer>
+<script type="module">
+import { account, ID, readableError } from "./appwrite-config.js";
+const form=document.getElementById("signupForm"),button=document.getElementById("signupButton"),message=document.getElementById("signupMessage");
+const requestedRedirect=new URLSearchParams(location.search).get("redirect");
+function safeRedirect(){if(!requestedRedirect)return null;try{const url=new URL(requestedRedirect,location.origin);return url.origin===location.origin?url.pathname+url.search+url.hash:null;}catch{return null;}}
+const target=safeRedirect();
+const loginTarget="accedi.html"+(target?"?redirect="+encodeURIComponent(target):"");
+document.getElementById("loginLink").href=loginTarget;document.getElementById("bottomLoginLink").href=loginTarget;
+function show(text,error=false){message.hidden=false;message.textContent=text;message.style.background=error?"#fff1ef":"";message.style.borderColor=error?"#ffd1ca":"";message.style.color=error?"#8f3327":"";}
+try{const existing=await account.get();if(existing)location.replace(target||"dashboard.html");}catch(_){}
+form.addEventListener("submit",async event=>{
+ event.preventDefault();message.hidden=true;button.disabled=true;button.textContent="Creazione account…";
+ try{
+  const data=new FormData(form),password=String(data.get("password")||""),confirmation=String(data.get("confirmation")||"");
+  if(password!==confirmation)throw new Error("Le due password non coincidono.");
+  await account.create({userId:ID.unique(),email:String(data.get("email")||"").trim(),password,name:String(data.get("name")||"").trim()});
+  await account.createEmailPasswordSession({email:String(data.get("email")||"").trim(),password});
+  location.replace(target||"dashboard.html");
+ }catch(error){show(readableError(error),true);button.disabled=false;button.textContent="Crea account gratuito";}
+});
+</script>
+</body></html>
