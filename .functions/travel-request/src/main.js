@@ -241,7 +241,7 @@ export default async ({ req, res, error }) => {
       if (!professionalId || !professionalSlug || !name || !role || !email || !phone || !verification) {
         return res.json({ error: "Completa tutti i campi obbligatori." }, 400);
       }
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.json({ error: "Inserisci un indirizzo email valido." }, 400);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.json({ error: "Inserisci un indirizzo email valido." }, 400);
       const professional = await tables.getRow({databaseId:DATABASE_ID,tableId:PROFESSIONALS_TABLE_ID,rowId:professionalId});
       if (professional.slug !== professionalSlug || professional.stato !== "pubblicato") return res.json({ error: "Il profilo indicato non è disponibile." }, 404);
       if (professional.profilo_rivendicato === true || professional.utente_id) return res.json({ error: "Questo profilo risulta già gestito dal professionista." }, 409);
