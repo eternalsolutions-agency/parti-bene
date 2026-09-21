@@ -66,6 +66,8 @@ const form = document.getElementById("loginForm");
 const message = document.getElementById("loginMessage");
 const accountPanel = document.getElementById("accountPanel");
 const button = document.getElementById("loginButton");
+const requestedRedirect = new URLSearchParams(location.search).get("redirect");
+function safeRedirect(){if(!requestedRedirect)return null;try{const url=new URL(requestedRedirect,location.origin);return url.origin===location.origin?url.pathname+url.search+url.hash:null;}catch{return null;}}
 
 function showMessage(text, isError = false) {
   message.hidden = false;
@@ -76,6 +78,7 @@ function showMessage(text, isError = false) {
 }
 
 function showAccount(user) {
+  const target=safeRedirect();if(target){location.replace(target);return;}
   form.hidden = true;
   accountPanel.hidden = false;
   document.getElementById("accountName").textContent = user.name ? `Bentornato, ${user.name}` : "Bentornato";
