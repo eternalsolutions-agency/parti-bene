@@ -49,25 +49,27 @@
 <div><h4>Informazioni</h4><a href="chi-siamo.html">Chi siamo</a><a href="contatti.html">Contatti</a><a href="privacy.html">Privacy</a></div>
 </div><div class="legal"><span>© 2026 Parti Bene.</span><span>Profilo e dati soggetti a verifica</span></div></div></footer>
 <script type="module">
-import { APPWRITE_CONFIG, functions } from "./appwrite-config.js";
+import { APPWRITE_CONFIG, functions, account } from "./appwrite-config.js";
 const form=document.getElementById("claimForm"),message=document.getElementById("claimMessage");
 const params=new URLSearchParams(location.search),slug=params.get("slug"),profileId=params.get("id");
-let selectedProfile=null;
+let selectedProfile=null, currentUser=null;
 function show(text,error=false){message.textContent=text;message.classList.add("is-visible");message.style.background=error?"#fff1ef":"";message.style.color=error?"#913428":"";message.scrollIntoView({behavior:"smooth",block:"center"});}
 async function run(action,payload={}){
  const execution=await functions.createExecution({functionId:APPWRITE_CONFIG.travelRequestFunctionId,body:JSON.stringify({action,...payload}),async:false,path:"/",method:"POST",headers:{"content-type":"application/json"}});
  const result=JSON.parse(execution.responseBody||"{}");if(Number(execution.responseStatusCode||0)>=400)throw new Error(result.error||"Operazione non riuscita.");return result;
 }
 try{
+ try{currentUser=await account.get();}catch(_){}
  if(!slug&&!profileId)throw new Error("Apri questa pagina dalla scheda del professionista che vuoi rivendicare.");
  const result=await run("public-professionals");
  selectedProfile=(result.items||[]).find(p=>(profileId&&p.$id===profileId)||(slug&&p.slug===slug));
  if(!selectedProfile)throw new Error("Il profilo da rivendicare non è disponibile.");
  if(selectedProfile.profilo_rivendicato)throw new Error("Questo profilo risulta già gestito dal professionista.");
  form.elements.business.value=selectedProfile.nome||"";
+ if(!currentUser){const returnTo=location.pathname+location.search;show("Per rivendicare questa scheda devi prima accedere al tuo account PARTI BENE.",false);form.querySelector('button[type="submit"]').textContent="Accedi per continuare";form.querySelector('button[type="submit"]').type="button";form.querySelector('button[type="submit"]').onclick=()=>location.href="accedi.html?redirect="+encodeURIComponent(returnTo);}
 }catch(error){show(error.message,true);form.querySelector('button[type="submit"]').disabled=true;}
 form.addEventListener("submit",async e=>{
- e.preventDefault();if(!selectedProfile)return;
+ e.preventDefault();if(!selectedProfile)return;if(!currentUser){location.href="accedi.html?redirect="+encodeURIComponent(location.pathname+location.search);return;}
  const button=form.querySelector('button[type="submit"]'),data=new FormData(form);button.disabled=true;button.textContent="Invio in corso…";
  try{
   const claim={professionista_id:selectedProfile.$id,professionista_slug:selectedProfile.slug,nome_richiedente:String(data.get("name")||"").trim(),ruolo:String(data.get("role")||"").trim(),email:String(data.get("email")||"").trim(),telefono:String(data.get("phone")||"").trim(),sito_web:String(data.get("website")||"").trim(),verifica:String(data.get("verification")||"").trim()};
