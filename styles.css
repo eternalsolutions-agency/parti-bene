@@ -424,3 +424,7 @@ footer{border-top:5px solid var(--orange)}
 .home-match-cta .travel-match-copy strong{font-size:15px}
 @media(max-width:700px){.travel-match-button .travel-match-copy strong{white-space:normal}.actions .travel-match-button{padding:10px!important}.actions .travel-match-button .travel-match-copy,.actions .travel-match-button .travel-match-arrow{display:none}.home-match-cta.travel-match-button .travel-match-copy,.home-match-cta.travel-match-button .travel-match-arrow{display:flex}.home-match-cta.travel-match-button{width:100%;justify-content:flex-start}.home-match-cta .travel-match-arrow{margin-left:auto}}
 @media(prefers-reduced-motion:reduce){.travel-match-button,.travel-match-button *{transition:none!important}}
+
+
+/* Keep the Travel Match questionnaire hidden until the primary CTA is used */
+.match-wizard.match-wizard-collapsed{display:none}
