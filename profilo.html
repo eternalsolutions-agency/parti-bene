@@ -82,12 +82,13 @@ async function load(){
   const fit=listLabels(profile.cliente_ideale,idealLabels)||(profile.specializzazioni||[]).slice(0,2).join(" · ")||"Viaggiatori che cercano una consulenza personalizzata";
   setText("profileFit",fit);setText("profileConsultation",consultationLabel(pref));setText("infoConsultation",consultationLabel(pref));
   setText("profileBudgets",listLabels(profile.fasce_budget,budgetLabels),"Da definire insieme");
-  const accepting=profile.accetta_richieste!==false;
+  const claimed=profile.profilo_rivendicato===true;
+  const accepting=claimed&&profile.accetta_richieste!==false;
   setText("profileAvailability",accepting?"Accetta nuove richieste":"Richieste in pausa");
   const availabilityNote=document.getElementById("profileAvailabilityNote"),proposalLink=document.getElementById("proposalLink");
-  availabilityNote.textContent=accepting?"Questo professionista sta accettando nuove richieste tramite Travel Match.":"Questo professionista al momento non riceve nuove richieste tramite Travel Match.";
+  availabilityNote.textContent=!claimed?"Questo profilo non è ancora stato rivendicato e non può ricevere richieste.":(accepting?"Questo professionista sta accettando nuove richieste tramite Travel Match.":"Questo professionista al momento non riceve nuove richieste tramite Travel Match.");
   availabilityNote.classList.toggle("paused",!accepting);
-  if(!accepting){proposalLink.textContent="Richieste temporaneamente in pausa";proposalLink.removeAttribute("href");proposalLink.setAttribute("aria-disabled","true");proposalLink.classList.add("is-disabled");}
+  if(!accepting){proposalLink.textContent=claimed?"Richieste temporaneamente in pausa":"Profilo non ancora attivo";proposalLink.removeAttribute("href");proposalLink.setAttribute("aria-disabled","true");proposalLink.classList.add("is-disabled");}else{proposalLink.href="richiedi-proposte.html?professionista="+encodeURIComponent(profile.slug);}
   setText("profileCity",[profile.comune,profile.provincia].filter(Boolean).join(" · "));
   const mode=profile.disponibile_online?"Online":"In sede";
   setText("profileMode",mode);setText("infoMode",mode);
@@ -99,7 +100,6 @@ async function load(){
   if(!profile.profilo_rivendicato){const box=document.getElementById("claimProfileBox"),link=document.getElementById("claimProfileLink");box.hidden=false;link.href="rivendica-profilo.html?slug="+encodeURIComponent(profile.slug)+"&id="+encodeURIComponent(profile.$id);}
   renderTags("specialtyTags",profile.specializzazioni);renderTags("destinationTags",profile.destinazioni);
   document.getElementById("profileCover").style.backgroundImage="linear-gradient(90deg,rgba(6,46,89,.3),rgba(6,46,89,.05)),url('"+getDestinationImage(profile.destinazioni,profile.nome+" "+publicDescription)+"')";
-  document.getElementById("proposalLink").href="richiedi-proposte.html?professionista="+encodeURIComponent(profile.slug);
   const offerResponse=await fetch(APPWRITE_CONFIG.endpoint+"/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.offersTableId+"/rows",{headers:{"X-Appwrite-Project":APPWRITE_CONFIG.projectId,"X-Appwrite-Response-Format":"1.8.0"}});
   const offerResult=await offerResponse.json().catch(()=>({}));
   const offers=(offerResult.rows||[]).filter(row=>row.professionista_id===profile.$id&&row.stato==="pubblicata");
