@@ -35,11 +35,11 @@
 <div class="actions"><button id="reloadButton" class="btn btn-ghost" type="button">Aggiorna</button><button id="logoutButton" class="btn btn-primary" type="button">Esci</button></div>
 </div></header>
 <main>
-<section class="page-hero"><div class="container"><div class="kicker">Amministrazione</div><h1>Richieste professionisti</h1><p class="hero-copy">Esamina, approva o richiedi integrazioni prima della pubblicazione.</p></div></section>
+<section class="page-hero"><div class="container"><div class="kicker">Amministrazione</div><h1>Gestione professionisti</h1><p class="hero-copy">Gestisci nuove iscrizioni e rivendicazioni delle schede pubbliche.</p></div></section>
 <section><div class="container">
 <div id="accessMessage" class="panel admin-empty loading">Verifica dei permessi amministrativi…</div>
 <div id="adminApp" class="admin-layout" hidden>
-<aside class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px"><h3 style="margin:0;color:var(--navy)">Richieste</h3><span id="requestCount" class="tag">0</span></div><div id="requestList" class="admin-list"></div></aside>
+<aside class="panel"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"><button id="applicationsTab" class="btn btn-primary" type="button">Iscrizioni <span id="requestCount">0</span></button><button id="claimsTab" class="btn btn-ghost" type="button">Rivendicazioni <span id="claimCount">0</span></button></div><div id="requestList" class="admin-list"></div></aside>
 <div id="detailPanel" class="panel admin-empty">Seleziona una richiesta dall’elenco.</div>
 </div>
 </div></section>
@@ -53,8 +53,10 @@ const accessMessage = document.getElementById("accessMessage");
 const listElement = document.getElementById("requestList");
 const detailPanel = document.getElementById("detailPanel");
 let requests = [];
+let claims = [];
 let professionals = [];
 let selectedId = null;
+let adminMode = "applications";
 
 const statusLabels={in_attesa:"In attesa",da_integrare:"Da integrare",approvata:"Approvata",rifiutata:"Rifiutata"};
 const modeLabels={in_sede:"In sede",online:"Online",su_appuntamento:"Su appuntamento",mista:"Mista"};
@@ -76,13 +78,16 @@ function tags(values){return (Array.isArray(values)&&values.length)?values.map(v
 function detailsRow(label,value){return '<div class="admin-detail"><small>'+label+'</small><strong>'+escapeHtml(value||"Non indicato")+'</strong></div>';}
 
 async function loadRequests(){
- const [result,professionalResult]=await Promise.all([
+ const [result,professionalResult,claimResult]=await Promise.all([
   api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.applicationsTableId+"/rows"),
-  api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows")
+  api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows"),
+  api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.profileClaimsTableId+"/rows")
  ]);
  requests=(result.rows||[]).sort((a,b)=>new Date(b.$createdAt)-new Date(a.$createdAt));
  professionals=professionalResult.rows||[];
+ claims=(claimResult.rows||[]).sort((a,b)=>new Date(b.$createdAt)-new Date(a.$createdAt));
  document.getElementById("requestCount").textContent=requests.length;
+ document.getElementById("claimCount").textContent=claims.length;
  renderList();
  if(selectedId){
    const current=requests.find(row=>row.$id===selectedId);
@@ -90,11 +95,30 @@ async function loadRequests(){
  }
 }
 function renderList(){
- listElement.innerHTML=requests.length?requests.map(row=>
+ const source=adminMode==="claims"?claims:requests;
+ listElement.innerHTML=source.length?source.map(row=>
   '<button class="admin-item '+(row.$id===selectedId?"active":"")+'" data-id="'+row.$id+'">'+
   '<strong>'+escapeHtml(row.nome_attivita)+'</strong><span>'+escapeHtml(row.email)+'</span>'+
   '<span class="admin-status status-'+escapeHtml(row.stato)+'">'+escapeHtml(statusLabels[row.stato]||row.stato)+'</span></button>'
  ).join(""):'<div class="meta">Nessuna richiesta presente.</div>';
+}
+function renderClaimDetail(row){
+ selectedId=row.$id;renderList();const profile=professionals.find(p=>p.$id===row.professionista_id);
+ detailPanel.className="panel";detailPanel.innerHTML=
+ '<div style="display:flex;justify-content:space-between;gap:15px;align-items:start;flex-wrap:wrap"><div><div class="kicker">Rivendicazione profilo</div><h2 style="font-size:32px">'+escapeHtml(row.nome_attivita)+'</h2></div><span class="admin-status status-'+escapeHtml(row.stato)+'">'+escapeHtml(statusLabels[row.stato]||row.stato)+'</span></div>'+
+ '<div class="admin-details">'+detailsRow("Richiedente",row.nome_richiedente)+detailsRow("Ruolo",row.ruolo)+detailsRow("Email",row.email)+detailsRow("Telefono",row.telefono)+detailsRow("Sito / pagina",row.sito_web)+detailsRow("Profilo pubblico",profile?profile.nome:"Profilo non trovato")+'</div>'+
+ '<h3 style="color:var(--navy)">Informazioni per la verifica</h3><p class="section-copy">'+escapeHtml(row.verifica)+'</p>'+
+ '<div class="form-field full" style="margin-top:22px"><label for="adminNotes">Note amministratore</label><textarea id="adminNotes" rows="3">'+escapeHtml(row.note_amministratore||"")+'</textarea></div>'+
+ '<div id="actionMessage" class="notice" style="display:none;margin-top:16px"></div>'+
+ '<div class="admin-actions"><button class="btn btn-primary" data-claim-action="approve">Approva rivendicazione</button><button class="btn btn-ghost" data-claim-action="integrate">Da integrare</button><button class="btn btn-danger" data-claim-action="reject">Rifiuta</button></div>';
+}
+async function updateClaim(row,status,notes){return api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.profileClaimsTableId+"/rows/"+row.$id,{method:"PATCH",body:{data:{stato:status,note_amministratore:notes||null}}});}
+async function approveClaim(row,notes){
+ if(!row.utente_id)throw new Error("Il richiedente non era autenticato: prima dell’approvazione deve creare/accedere a un account PARTI BENE e inviare una nuova rivendicazione.");
+ const profile=professionals.find(p=>p.$id===row.professionista_id);if(!profile)throw new Error("La scheda pubblica da collegare non è stata trovata.");
+ if(profile.utente_id&&profile.utente_id!==row.utente_id)throw new Error("Questa scheda risulta già collegata a un altro account.");
+ await api("/tablesdb/"+APPWRITE_CONFIG.databaseId+"/tables/"+APPWRITE_CONFIG.professionalsTableId+"/rows/"+profile.$id,{method:"PATCH",body:{data:{utente_id:row.utente_id,profilo_rivendicato:true}}});
+ await updateClaim(row,"approvata",notes);
 }
 function renderDetail(row){
  selectedId=row.$id;renderList();
@@ -154,8 +178,17 @@ async function approve(row,notes){
  }
  await updateRequest(row,"approvata",notes);
 }
-listElement.addEventListener("click",event=>{const button=event.target.closest("[data-id]");if(button){const row=requests.find(item=>item.$id===button.dataset.id);if(row)renderDetail(row);}});
+listElement.addEventListener("click",event=>{const button=event.target.closest("[data-id]");if(!button)return;const source=adminMode==="claims"?claims:requests;const row=source.find(item=>item.$id===button.dataset.id);if(row)(adminMode==="claims"?renderClaimDetail:renderDetail)(row);});
+document.getElementById("applicationsTab").addEventListener("click",()=>{adminMode="applications";selectedId=null;document.getElementById("applicationsTab").className="btn btn-primary";document.getElementById("claimsTab").className="btn btn-ghost";detailPanel.className="panel admin-empty";detailPanel.textContent="Seleziona una richiesta dall’elenco.";renderList();});
+document.getElementById("claimsTab").addEventListener("click",()=>{adminMode="claims";selectedId=null;document.getElementById("claimsTab").className="btn btn-primary";document.getElementById("applicationsTab").className="btn btn-ghost";detailPanel.className="panel admin-empty";detailPanel.textContent="Seleziona una rivendicazione dall’elenco.";renderList();});
 detailPanel.addEventListener("click",async event=>{
+ const claimButton=event.target.closest("[data-claim-action]");
+ if(claimButton){
+  const row=claims.find(item=>item.$id===selectedId);if(!row)return;const notes=document.getElementById("adminNotes").value.trim(),message=document.getElementById("actionMessage");
+  claimButton.disabled=true;message.style.display="block";message.textContent="Operazione in corso…";
+  try{if(claimButton.dataset.claimAction==="approve")await approveClaim(row,notes);if(claimButton.dataset.claimAction==="integrate")await updateClaim(row,"da_integrare",notes);if(claimButton.dataset.claimAction==="reject")await updateClaim(row,"rifiutata",notes);message.textContent="Operazione completata correttamente.";await loadRequests();const fresh=claims.find(x=>x.$id===selectedId);if(fresh)renderClaimDetail(fresh);}
+  catch(error){message.textContent=readableError(error);message.style.background="#fff1ef";message.style.color="#913428";}finally{claimButton.disabled=false;}return;
+ }
  const button=event.target.closest("[data-action]");if(!button)return;
  const row=requests.find(item=>item.$id===selectedId);if(!row)return;
  const notes=document.getElementById("adminNotes").value.trim();
