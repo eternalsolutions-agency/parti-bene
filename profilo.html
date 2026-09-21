@@ -95,7 +95,7 @@ async function load(){
   setText("infoType",profile.tipologia==="agenzia"?"Agenzia di viaggio":"Consulente di viaggio");
   setText("infoLocation",[profile.comune,profile.provincia].filter(Boolean).join(" · "));
   setText("infoStatus",profile.profilo_verificato?"Verificato da Parti Bene":(profile.profilo_rivendicato?"Profilo rivendicato":"Profilo non ancora rivendicato"));
-  setText("profileBadge",profile.profilo_verificato?"✓ Verificato":(profile.profilo_rivendicato?"Profilo rivendicato":"Profilo non rivendicato"));
+  setText("profileBadge",profile.profilo_verificato?"✓ Profilo verificato":(profile.profilo_rivendicato?"Profilo rivendicato":"Profilo non rivendicato"));
   if(!profile.profilo_rivendicato){const box=document.getElementById("claimProfileBox"),link=document.getElementById("claimProfileLink");box.hidden=false;link.href="rivendica-profilo.html?slug="+encodeURIComponent(profile.slug)+"&id="+encodeURIComponent(profile.$id);}
   renderTags("specialtyTags",profile.specializzazioni);renderTags("destinationTags",profile.destinazioni);
   document.getElementById("profileCover").style.backgroundImage="linear-gradient(90deg,rgba(6,46,89,.3),rgba(6,46,89,.05)),url('"+getDestinationImage(profile.destinazioni,profile.nome+" "+publicDescription)+"')";
