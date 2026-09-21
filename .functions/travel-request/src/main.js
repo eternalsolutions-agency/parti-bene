@@ -5,6 +5,7 @@ const DATABASE_ID = "6aa8e1a70039d07d09d6";
 const PROFESSIONALS_TABLE_ID = "6aa8e22900034b468dc2";
 const TRAVEL_REQUESTS_TABLE_ID = "6aa96117003d70271c30";
 const ASSIGNMENTS_TABLE_ID = "6aa963d800048778c6e3";
+const PROFILE_CLAIMS_TABLE_ID = "6ab15516003be8ca1a02";
 
 function adminClient(req) {
   const endpoint = process.env.APPWRITE_FUNCTION_API_ENDPOINT || "https://fra.cloud.appwrite.io/v1";
@@ -139,7 +140,7 @@ export default async ({ req, res, error }) => {
           ]
         });
         professional = profiles.rows?.[0] || null;
-        if (!professional?.utente_id) return res.json({ error: "Il professionista selezionato non è più disponibile." }, 409);
+        if (!professional?.utente_id || professional.accetta_richieste === false) return res.json({ error: "Il professionista selezionato non è più disponibile." }, 409);
       }
 
       const request = await tables.createRow({
@@ -222,9 +223,46 @@ export default async ({ req, res, error }) => {
         specializzazioni: row.specializzazioni || [],
         destinazioni: row.destinazioni || [],
         profilo_verificato: Boolean(row.profilo_verificato),
+        profilo_rivendicato: Boolean(row.profilo_rivendicato),
         stato: "pubblicato"
       }));
       return res.json({ ok: true, items });
+    }
+
+    if (action === "create-profile-claim") {
+      const source = body.claim || {};
+      const professionalId = cleanText(source.professionista_id, 80);
+      const professionalSlug = cleanText(source.professionista_slug, 150);
+      const name = cleanText(source.nome_richiedente, 180);
+      const role = cleanText(source.ruolo, 80);
+      const email = cleanText(source.email, 254);
+      const phone = cleanText(source.telefono, 50);
+      const verification = cleanText(source.verifica, 2000);
+      if (!professionalId || !professionalSlug || !name || !role || !email || !phone || !verification) {
+        return res.json({ error: "Completa tutti i campi obbligatori." }, 400);
+      }
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.json({ error: "Inserisci un indirizzo email valido." }, 400);
+      const professional = await tables.getRow({databaseId:DATABASE_ID,tableId:PROFESSIONALS_TABLE_ID,rowId:professionalId});
+      if (professional.slug !== professionalSlug || professional.stato !== "pubblicato") return res.json({ error: "Il profilo indicato non è disponibile." }, 404);
+      if (professional.profilo_rivendicato === true || professional.utente_id) return res.json({ error: "Questo profilo risulta già gestito dal professionista." }, 409);
+      const recent = await tables.listRows({databaseId:DATABASE_ID,tableId:PROFILE_CLAIMS_TABLE_ID,queries:[Query.orderDesc("$createdAt"),Query.limit(100)]});
+      const duplicate=(recent.rows||[]).some(row=>String(row.professionista_id)===String(professionalId)&&["in_attesa","da_integrare"].includes(row.stato));
+      if(duplicate) return res.json({ error: "Esiste già una richiesta di rivendicazione in lavorazione per questo profilo." }, 409);
+      const data={
+        professionista_id:professional.$id,
+        professionista_slug:professional.slug,
+        nome_attivita:professional.nome,
+        nome_richiedente:name,
+        ruolo:role,
+        email,
+        telefono:phone,
+        verifica:verification,
+        stato:"in_attesa"
+      };
+      const website=cleanText(source.sito_web,500); if(website)data.sito_web=website;
+      if(userId)data.utente_id=userId;
+      const claim=await tables.createRow({databaseId:DATABASE_ID,tableId:PROFILE_CLAIMS_TABLE_ID,rowId:ID.unique(),data});
+      return res.json({ok:true,claimId:claim.$id},201);
     }
 
     if (!userId) return res.json({ error: "Accedi come professionista per continuare." }, 401);
